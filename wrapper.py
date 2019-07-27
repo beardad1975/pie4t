@@ -1,3 +1,4 @@
+import math
 
 
 class BodyShapeWrapper:
@@ -12,6 +13,23 @@ class BodyShapeWrapper:
     @mass.setter
     def mass(self, m):
         self.body.mass = m
+
+    @property
+    def 質量(self):
+        return self.body.mass
+
+    @質量.setter
+    def 質量(self, m):
+        self.body.mass = m
+
+
+    @property
+    def moment(self):
+        return self.body.moment
+
+    @moment.setter
+    def moment(self, mo):
+        self.body.moment = mo
 
     @property
     def position(self):
@@ -36,6 +54,22 @@ class BodyShapeWrapper:
     @force.setter
     def force(self, f):
         self.body.force = f
+
+    @property
+    def degree(self):
+        return math.degrees(self.body.angle)
+
+    @degree.setter
+    def degree(self, d):
+        self.body.angle = math.radians(d)
+
+    @property
+    def 角度(self):
+        return math.degrees(self.body.angle)
+
+    @角度.setter
+    def 角度(self, d):
+        self.body.angle = math.radians(d)
 
 
     @property

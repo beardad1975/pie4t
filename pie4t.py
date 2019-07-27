@@ -19,7 +19,9 @@ class Config:
         self.WINDOW_WIDTH = 500 if not hasattr(toplevel, "WINDOW_WIDTH") else toplevel.WINDOW_WIDTH 
         self.WINDOW_HEIGHT = 500 if not hasattr(toplevel, "WINDOW_HEIGHT") else toplevel.WINDOW_HEIGHT  
         self.GRAVITY = (0, 0) if not hasattr(toplevel, "GRAVITY") else toplevel.GRAVITY  
+
         self.DENSITY = 1 if not hasattr(toplevel, "DENSITY") else toplevel.DENSITY 
+
         self.FRICTION = 0.5 if not hasattr(toplevel, "FRICTION") else toplevel.FRICTION 
         self.SIZE = (20, 20) if not hasattr(toplevel, "SIZE") else toplevel.SIZE
         self.X = self.WINDOW_WIDTH // 2 if not hasattr(toplevel, "X") else toplevel.X
@@ -157,11 +159,17 @@ class Engine:
         self.space.add(box_body, box_shape)
         return  BodyShapeWrapper(box_body, box_shape)
 
+    def 新增方塊(self, **kwargs):
+        return self.add_box(**kwargs)
+
     def make_walls(self):
         self.make_one_wall( (0,0), (self.window.width,0))
         self.make_one_wall( (0,self.window.height), (self.window.width,self.window.height))
         self.make_one_wall( (0,0), (0,self.window.height))
         self.make_one_wall( (self.window.width,0), (self.window.width,self.window.height))
+
+    def 產生邊緣(self):
+        self.make_walls()
 
     def make_one_wall(self, a, b):
         wall_body = pymunk.Body(body_type=pymunk.Body.STATIC)
@@ -181,6 +189,7 @@ class Engine:
     def default_update(self, dt):
         self.space.step(dt)
 
+
     def run(self):
         
         
@@ -192,14 +201,19 @@ class Engine:
         if hasattr(toplevel, "on_mouse_drag"):
             toplevel.on_mouse_drag = self.window.event(toplevel.on_mouse_drag)
 
-        if hasattr(toplevel, "on_key_press"):
-            toplevel.on_key_press = self.window.event(toplevel.on_key_press)
+        if hasattr(toplevel, "當按下按鍵"):
+            toplevel.當按下按鍵.__name__ = "on_key_press"
+            toplevel.當按下按鍵 = self.window.event(toplevel.當按下按鍵)
+            
 
         if hasattr(toplevel,"update"):
             pyglet.clock.schedule_interval(toplevel.update, self.config.DT)
         else:
             pyglet.clock.schedule_interval(self.default_update, self.config.DT)
         pyglet.app.run()
+
+    def 開始模擬(self):
+        self.run()
 
 
 
