@@ -12,39 +12,25 @@ options = pymunk.pyglet_util.DrawOptions()
 toplevel = sys.modules["__main__"]
 
 
-
-
 class Config:
-    def __init__(self):
-        self.WINDOW_WIDTH = 500 if not hasattr(toplevel, "WINDOW_WIDTH") else toplevel.WINDOW_WIDTH 
-        self.WINDOW_HEIGHT = 500 if not hasattr(toplevel, "WINDOW_HEIGHT") else toplevel.WINDOW_HEIGHT  
-        self.GRAVITY = (0, 0) if not hasattr(toplevel, "GRAVITY") else toplevel.GRAVITY  
-
-        self.DENSITY = 1 if not hasattr(toplevel, "DENSITY") else toplevel.DENSITY 
-
-        self.FRICTION = 0.5 if not hasattr(toplevel, "FRICTION") else toplevel.FRICTION 
-        self.SIZE = (20, 20) if not hasattr(toplevel, "SIZE") else toplevel.SIZE
-        self.X = self.WINDOW_WIDTH // 2 if not hasattr(toplevel, "X") else toplevel.X
-        self.Y = self.WINDOW_HEIGHT // 2 if not hasattr(toplevel, "Y") else toplevel.Y
-        self.ELASTICITY = 0.8 if not hasattr(toplevel, "ELASTICITY") else toplevel.ELASTICITY 
-        self.DT = 0.02 if not hasattr(toplevel, "DT") else toplevel.DT
-        self.RANDOM_RADIUS_RANGE = (10,40) if not hasattr(toplevel, "RANDOM_RADIUS_RANGE") else toplevel.RANDOM_RADIUS_RANGE
-        self.RANDOM_SIZE_RANGE = (10, 40) if not hasattr(toplevel, "RANDOM_SIZE_RANGEE") else toplevel.RANDOM_SIZE_RANGE
-        self.RANDOM_VELOCITY_RANGE = (-300, 300)  if not hasattr(toplevel, "RANDOM_VELOCITY_RANGE") else toplevel.RANDOM_VELOCITY_RANGE
-        self.RANDOM_X_RANGE = (int(self.WINDOW_WIDTH*0.4), int(self.WINDOW_WIDTH*0.6)) if not hasattr(toplevel, "RANDOM_X_RANGE") else toplevel.RANDOM_X_RANGE 
-        self.RANDOM_Y_RANGE = (int(self.WINDOW_HEIGHT*0.4), int(self.WINDOW_HEIGHT*0.6)) if not hasattr(toplevel, "RANDOM_Y_RANGE") else toplevel.RANDOM_Y_RANGE 
-        
-        # self.RANDOM_COLOR_DICT = {
-        #     "red" : (255,0,0,255),
-        #     "orange" : (255,165,0,255),
-        #     "yellow" : (255,255,0,255),
-        #     "green" : (0,255,0,255),
-        #     "blue" : (0,0,255,255),
-        #     "cyan" : (0,255,255,255),
-        #     "purple" : (255,0,255,255),
-        #     "white" : (255,255,255,255),
-        # }  if not hasattr(toplevel, "RANDOM_COLOR_DICT") else toplevel.RANDOM_COLOR_DICT
-        self.WALL_THICKNESS = 10 if not hasattr(toplevel, "WALL_THICKNESS") else toplevel.WALL_THICKNESS 
+    def __init__(self, width, height):
+        # customizable
+        self.WINDOW_WIDTH = 500 if width is None else width
+        self.WINDOW_HEIGHT = 500 if height is None else height   
+        self.FRICTION = 0.5 
+        self.ELASTICITY = 0.8
+        self.DT = 0.02
+        #used internally
+        self.DENSITY = 1
+        self.GRAVITY = (0, 0)  
+        self.SIZE = (20, 20)
+        self.RANDOM_RADIUS_RANGE = (10,40) 
+        self.RANDOM_SIZE_RANGE = (10, 40) 
+        self.RANDOM_VELOCITY_RANGE = (-300, 300)
+        self.RANDOM_X_RANGE = (int(self.WINDOW_WIDTH*0.4), int(self.WINDOW_WIDTH*0.6))
+        self.RANDOM_Y_RANGE = (int(self.WINDOW_HEIGHT*0.4), int(self.WINDOW_HEIGHT*0.6))
+        self.WALL_THICKNESS = 10 
+    
 
 
 class Color:
@@ -67,16 +53,33 @@ color = Color()
 
 
 class Engine:
-    " pymunk physics engine wrapper with pyglet support"
+    " physics impulse engine with pyglet and pymunk backended"
 
-    def __init__(self):
-        self.config = Config()
-
-        self.window = pyglet.window.Window(self.config.WINDOW_WIDTH, 
+    def __init__(self, width=None, 舞台寬=None, height=None, 舞台高=None):
+        width = 舞台寬 if 舞台寬 is not None else width
+        height = 舞台高 if 舞台高 is not None else height
+        self.config = Config(width, height)
+        self.window = pyglet.window.Window(self.config.WINDOW_WIDTH,
                                             self.config.WINDOW_HEIGHT, 
                                             resizable=False)
         self.space = pymunk.Space()
         self.space.gravity = self.config.GRAVITY
+
+    @property
+    def gravity(self):
+        return self.space.gravity
+
+    @gravity.setter
+    def gravity(self, g):
+        self.space.gravity = g 
+
+    @property
+    def 重力(self):
+        return self.space.gravity
+
+    @重力.setter
+    def 重力(self, g):
+        self.space.gravity = g 
 
 
     def add_circle(self,x=None,
@@ -128,14 +131,15 @@ class Engine:
         self.space.add(circle_body, circle_shape)
         return  circle_shape
 
-    def add_box(self,size=None, static=False,kinematic=False):
-        if static:
+    def add_box(self,size=None,大小=None, static=False, 固定=False,kinematic=False):
+        if static or 固定 :
             box_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         elif kinematic:
             box_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
         else:
             box_body = pymunk.Body(body_type=pymunk.Body.DYNAMIC) 
 
+        size = 大小 if 大小 is not None else size
         size = size if size is not None else self.config.SIZE
         box_shape = pymunk.Poly.create_box(box_body, size)
 
@@ -162,16 +166,16 @@ class Engine:
     def 新增方塊(self, **kwargs):
         return self.add_box(**kwargs)
 
-    def make_walls(self):
-        self.make_one_wall( (0,0), (self.window.width,0))
-        self.make_one_wall( (0,self.window.height), (self.window.width,self.window.height))
-        self.make_one_wall( (0,0), (0,self.window.height))
-        self.make_one_wall( (self.window.width,0), (self.window.width,self.window.height))
+    def make_borders(self):
+        self.make_one_border( (0,0), (self.window.width,0))
+        self.make_one_border( (0,self.window.height), (self.window.width,self.window.height))
+        self.make_one_border( (0,0), (0,self.window.height))
+        self.make_one_border( (self.window.width,0), (self.window.width,self.window.height))
 
-    def 產生邊緣(self):
-        self.make_walls()
+    def 產生邊界(self):
+        self.make_borders()
 
-    def make_one_wall(self, a, b):
+    def make_one_border(self, a, b):
         wall_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         wall_shape = pymunk.Segment(wall_body, a,b,self.config.WALL_THICKNESS)
         wall_shape.friction = self.config.FRICTION
@@ -215,6 +219,6 @@ class Engine:
     def 開始模擬(self):
         self.run()
 
-
+物理引擎 = Engine
 
 
