@@ -22,13 +22,20 @@ class BodyShapeWrapper:
     def 質量(self, m):
         self.body.mass = m
 
-
     @property
     def moment(self):
         return self.body.moment
 
     @moment.setter
     def moment(self, mo):
+        self.body.moment = mo
+
+    @property
+    def 轉動慣量(self):
+        return self.body.moment
+
+    @轉動慣量.setter
+    def 轉動慣量(self, mo):
         self.body.moment = mo
 
     @property
@@ -40,6 +47,14 @@ class BodyShapeWrapper:
         self.body.position = p
 
     @property
+    def 位置(self):
+        return self.body.position
+
+    @位置.setter
+    def 位置(self, p):
+        self.body.position = p
+
+    @property
     def velocity(self):
         return self.body.velocity
 
@@ -48,11 +63,27 @@ class BodyShapeWrapper:
         self.body.velocity = v
 
     @property
+    def 速度(self):
+        return self.body.velocity
+
+    @速度.setter
+    def 速度(self, v):
+        self.body.velocity = v
+
+    @property
     def force(self):
         return self.body.force
 
     @force.setter
     def force(self, f):
+        self.body.force = f
+
+    @property
+    def 力(self):
+        return self.body.force
+
+    @力.setter
+    def 力(self, f):
         self.body.force = f
 
     @property
@@ -71,6 +102,21 @@ class BodyShapeWrapper:
     def 角度(self, d):
         self.body.angle = math.radians(d)
 
+    @property
+    def angular_velocity_degree(self):
+        return math.degrees(self.body.angular_velocity)
+
+    @angular_velocity_degree.setter
+    def angular_velocity_degree(self, av):
+        self.body.angular_velocity = math.radians(av)
+
+    @property
+    def 角速度(self):
+        return math.degrees(self.body.angular_velocity)
+
+    @角速度.setter
+    def 角速度(self, av):
+        self.body.angular_velocity = math.radians(av)
 
     @property
     def torque(self):
@@ -79,3 +125,20 @@ class BodyShapeWrapper:
     @torque.setter
     def torque(self, t):
         self.body.torque = t
+
+    @property
+    def 力矩(self):
+        return self.body.torque
+
+    @力矩.setter
+    def 力矩(self, t):
+        self.body.torque = t
+
+
+    @property
+    def density(self):
+        return self.shape.density
+
+    @density.setter
+    def density(self, d):
+        self.shape.density = d

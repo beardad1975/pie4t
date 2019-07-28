@@ -59,9 +59,7 @@ class Engine:
         width = 舞台寬 if 舞台寬 is not None else width
         height = 舞台高 if 舞台高 is not None else height
         self.config = Config(width, height)
-        self.window = pyglet.window.Window(self.config.WINDOW_WIDTH,
-                                            self.config.WINDOW_HEIGHT, 
-                                            resizable=False)
+
         self.space = pymunk.Space()
         self.space.gravity = self.config.GRAVITY
 
@@ -167,10 +165,10 @@ class Engine:
         return self.add_box(**kwargs)
 
     def make_borders(self):
-        self.make_one_border( (0,0), (self.window.width,0))
-        self.make_one_border( (0,self.window.height), (self.window.width,self.window.height))
-        self.make_one_border( (0,0), (0,self.window.height))
-        self.make_one_border( (self.window.width,0), (self.window.width,self.window.height))
+        self.make_one_border( (0,0), (self.config.WINDOW_WIDTH,0))
+        self.make_one_border( (0,self.config.WINDOW_HEIGHT), (self.config.WINDOW_WIDTH,self.config.WINDOW_HEIGHT))
+        self.make_one_border( (0,0), (0,self.config.WINDOW_HEIGHT))
+        self.make_one_border( (self.config.WINDOW_WIDTH,0), (self.config.WINDOW_WIDTH,self.config.WINDOW_HEIGHT))
 
     def 產生邊界(self):
         self.make_borders()
@@ -195,7 +193,9 @@ class Engine:
 
 
     def run(self):
-        
+        self.window = pyglet.window.Window(self.config.WINDOW_WIDTH,
+                                            self.config.WINDOW_HEIGHT, 
+                                            resizable=False)        
         
         self.on_draw = self.window.event(self.on_draw)
 
