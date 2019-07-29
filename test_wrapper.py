@@ -113,6 +113,48 @@ class TestWrapperClass(unittest.TestCase):
         self.assertEqual( d, self.box.shape.density)
         self.assertEqual(self.box.density, d)
 
+    def test_set_and_get_密度(self):
+        d = 90
+        self.box.密度 = d
+        self.assertEqual( d, self.box.shape.density)
+        self.assertEqual(self.box.密度, d)
+
+    def test_set_and_get_elasticity(self):
+        e = 0.9
+        self.box.elasticity = e
+        self.assertEqual( e, self.box.shape.elasticity)
+        self.assertEqual(self.box.elasticity, e)
+
+    def test_set_and_get_彈性(self):
+        e = 0.9
+        self.box.彈性 = e
+        self.assertEqual( e, self.box.shape.elasticity)
+        self.assertEqual(self.box.彈性, e)
+
+    def test_set_and_get_friction(self):
+        f = 0.9
+        self.box.friction = f
+        self.assertEqual( f, self.box.shape.friction)
+        self.assertEqual(self.box.friction, f)
+
+    def test_set_and_get_摩擦(self):
+        f = 0.9
+        self.box.摩擦 = f
+        self.assertEqual( f, self.box.shape.friction)
+        self.assertEqual(self.box.摩擦, f)
+
+    def test_set_and_get_color(self):
+        c = (128, 128, 255, 255) 
+        self.box.color = c
+        self.assertEqual( c, self.box.shape.color)
+        self.assertEqual(self.box.color, c)
+
+    def test_set_and_get_顏色(self):
+        c = (128, 128, 255, 255) 
+        self.box.顏色 = c
+        self.assertEqual( c, self.box.shape.color)
+        self.assertEqual(self.box.顏色, c)
+
 
 if __name__ == '__main__':
     unittest.main()

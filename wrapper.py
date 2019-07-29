@@ -142,3 +142,59 @@ class BodyShapeWrapper:
     @density.setter
     def density(self, d):
         self.shape.density = d
+
+    @property
+    def 密度(self):
+        return self.shape.density
+
+    @密度.setter
+    def 密度(self, d):
+        self.shape.density = d
+
+    @property
+    def elasticity(self):
+        return self.shape.elasticity
+
+    @elasticity.setter
+    def elasticity(self, e):
+        self.shape.elasticity = e
+
+    @property
+    def 彈性(self):
+        return self.shape.elasticity
+
+    @彈性.setter
+    def 彈性(self, e):
+        self.shape.elasticity = e
+
+    @property
+    def friction(self):
+        return self.shape.friction
+
+    @friction.setter
+    def friction(self, f):
+        self.shape.friction = f
+
+    @property
+    def 摩擦(self):
+        return self.shape.friction
+
+    @摩擦.setter
+    def 摩擦(self, f):
+        self.shape.friction = f
+
+    @property
+    def color(self):
+        return self.shape.color
+
+    @color.setter
+    def color(self, c):
+        self.shape.color = c
+
+    @property
+    def 顏色(self):
+        return self.shape.color
+
+    @顏色.setter
+    def 顏色(self, c):
+        self.shape.color = c
