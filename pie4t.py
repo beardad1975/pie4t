@@ -15,8 +15,8 @@ toplevel = sys.modules["__main__"]
 class Config:
     def __init__(self, width, height):
         # customizable
-        self.WINDOW_WIDTH = 500 if width is None else width
-        self.WINDOW_HEIGHT = 500 if height is None else height   
+        self.WINDOW_WIDTH = 600 if width is None else width
+        self.WINDOW_HEIGHT = 600 if height is None else height   
         self.FRICTION = 0.5 
         self.ELASTICITY = 0.8
         self.DT = 0.02
@@ -25,7 +25,6 @@ class Config:
         self.GRAVITY = (0, 0)  
         self.SIZE = (20, 20)
         self.RANDOM_RADIUS_RANGE = (10,40) 
-        self.RANDOM_SIZE_RANGE = (10, 40) 
         self.RANDOM_VELOCITY_RANGE = (-300, 300)
         self.RANDOM_X_RANGE = (int(self.WINDOW_WIDTH*0.4), int(self.WINDOW_WIDTH*0.6))
         self.RANDOM_Y_RANGE = (int(self.WINDOW_HEIGHT*0.4), int(self.WINDOW_HEIGHT*0.6))
@@ -79,55 +78,87 @@ class Engine:
     def 重力(self, g):
         self.space.gravity = g 
 
+    @property
+    def default_friction(self):
+        return self.config.FRICTION
 
-    def add_circle(self,x=None,
-                        y=None, 
-                        radius=None,
-                        density=None,
-                        friction=None,
-                        elasticity=None,
-                        color=None,
-                        static=False,
-                        kinematic=False,
-                        velocity=None,
-                        ):
-        if static:
+    @default_friction.setter
+    def default_friction(self, fr):
+        self.config.FRICTION = fr 
+
+    @property
+    def 預設摩擦(self):
+        return self.config.FRICTION
+
+    @預設摩擦.setter
+    def 預設摩擦(self, fr):
+        self.config.FRICTION = fr
+
+    @property
+    def default_elasticity(self):
+        return self.config.ELASTICITY
+
+    @default_elasticity.setter
+    def default_elasticity(self, e):
+        self.config.ELASTICITY = e 
+
+    @property
+    def 預設彈性(self):
+        return self.config.ELASTICITY
+
+    @預設彈性.setter
+    def 預設彈性(self, e):
+        self.config.ELASTICITY = e 
+
+    @property
+    def default_density(self):
+        return self.config.DENSITY
+
+    @default_density.setter
+    def default_density(self, d):
+        self.config.DENSITY = d 
+
+    @property
+    def 預設密度(self):
+        return self.config.DENSITY
+
+    @預設密度.setter
+    def 預設密度(self, d):
+        self.config.DENSITY = d 
+
+    def add_circle(self, radius=None, 半徑=None, static=False, 固定=None, kinematic=False):
+        if static or 固定 :
             circle_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         elif kinematic:
             circle_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
         else:
             circle_body = pymunk.Body(body_type=pymunk.Body.DYNAMIC) 
 
+        radius = 半徑 if 半徑 is not None else radius
         if radius is not None:
             circle_shape = pymunk.Circle(circle_body, radius)
         else:
             circle_shape = pymunk.Circle(circle_body, randint(*self.config.RANDOM_RADIUS_RANGE))
 
-        circle_shape.density = density if density is not None else self.config.DENSITY
-        circle_shape.friction = friction if friction is not None else self.config.FRICTION
-        circle_shape.elasticity = elasticity if elasticity is not None else self.config.ELASTICITY
+        circle_shape.density = self.config.DENSITY
+        circle_shape.friction = self.config.FRICTION
+        circle_shape.elasticity = self.config.ELASTICITY
         
-        if color  is not None:
-            if type(color) is str:
-                circle_shape.color = self.config.RANDOM_COLOR_DICT[color]     
-            else:
-                circle_shape.color = color
-        else:
-            circle_shape.color = choice(list(self.config.RANDOM_COLOR_DICT.values()))
+        circle_shape.color = color.random()
 
-        temp_x = x if x is not None else randint(*self.config.RANDOM_X_RANGE)
-        temp_y = y if y is not None else randint(*self.config.RANDOM_Y_RANGE)
+        temp_x = randint(*self.config.RANDOM_X_RANGE)
+        temp_y = randint(*self.config.RANDOM_Y_RANGE)
         circle_body.position = (temp_x, temp_y)
 
-        if velocity is not None :
-            circle_body.velocity = velocity
-        elif circle_body.body_type is pymunk.Body.DYNAMIC:
-            circle_body.velocity = (randint(*self.config.RANDOM_VELOCITY_RANGE),
-                                    randint(*self.config.RANDOM_VELOCITY_RANGE)
-                                    )
+        circle_body.velocity = (randint(*self.config.RANDOM_VELOCITY_RANGE),
+                                randint(*self.config.RANDOM_VELOCITY_RANGE)
+                                )
 
         self.space.add(circle_body, circle_shape)
-        return  circle_shape
+        return  BodyShapeWrapper(circle_body, circle_shape)
+
+    def 新增圓形(self, **kwargs):
+        self.add_circle(**kwargs)
 
     def add_box(self,size=None,大小=None, static=False, 固定=False,kinematic=False):
         if static or 固定 :

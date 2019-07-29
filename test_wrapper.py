@@ -7,8 +7,8 @@ from math import radians, degrees
 
 class TestWrapperClass(unittest.TestCase):
     def setUp(self):
-        self.engine = pie4t.Engine()
-        self.box = self.engine.add_box()
+        self.stage = pie4t.Engine()
+        self.box = self.stage.add_box()
 
     def test_set_and_get_mass(self):
         m = 500
