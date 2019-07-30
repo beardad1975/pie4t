@@ -107,17 +107,17 @@ class TestWrapperClass(unittest.TestCase):
         self.assertEqual( t, self.box.body.torque)
         self.assertEqual(self.box.力矩, t)
 
-    def test_set_and_get_density(self):
-        d = 90
-        self.box.density = d
-        self.assertEqual( d, self.box.shape.density)
-        self.assertEqual(self.box.density, d)
+    # def test_set_and_get_density(self):
+    #     d = 90
+    #     self.box.density = d
+    #     self.assertEqual( d, self.box.shape.density)
+    #     self.assertEqual(self.box.density, d)
 
-    def test_set_and_get_密度(self):
-        d = 90
-        self.box.密度 = d
-        self.assertEqual( d, self.box.shape.density)
-        self.assertEqual(self.box.密度, d)
+    # def test_set_and_get_密度(self):
+    #     d = 90
+    #     self.box.密度 = d
+    #     self.assertEqual( d, self.box.shape.density)
+    #     self.assertEqual(self.box.密度, d)
 
     def test_set_and_get_elasticity(self):
         e = 0.9

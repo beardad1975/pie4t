@@ -135,21 +135,21 @@ class BodyShapeWrapper:
         self.body.torque = t
 
 
-    @property
-    def density(self):
-        return self.shape.density
+    #@property
+    #def density(self):
+    #    return self.shape.density
 
-    @density.setter
-    def density(self, d):
-        self.shape.density = d
+    #@density.setter
+    #def density(self, d):
+    #    self.shape.density = d
 
-    @property
-    def 密度(self):
-        return self.shape.density
+    #@property
+    #def 密度(self):
+    #    return self.shape.density
 
-    @密度.setter
-    def 密度(self, d):
-        self.shape.density = d
+    #@密度.setter
+    #def 密度(self, d):
+    #    self.shape.density = d
 
     @property
     def elasticity(self):

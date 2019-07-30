@@ -1,12 +1,14 @@
 import sys
 from random import choice, randint, random
+from inspect import signature
 
 import pyglet
+from pyglet.window import key
 import pymunk
 import pymunk.pyglet_util
 
 from wrapper import BodyShapeWrapper
-import exception
+
 
 
 options = pymunk.pyglet_util.DrawOptions()
@@ -51,6 +53,10 @@ class Color:
 color = Color()
 
 
+class Pie4tBaseException(ValueError): pass
+class CircleException(Pie4tBaseException):pass
+class BoxException(Pie4tBaseException):pass
+class EventException(Pie4tBaseException):pass
 
 class Engine:
     " physics impulse engine with pyglet and pymunk backended"
@@ -140,7 +146,7 @@ class Engine:
             if radius > 0:
                 circle_shape = pymunk.Circle(circle_body, radius)
             else:
-                raise exception.CircleException('新增圓形錯誤','半徑值沒有大於0')
+                raise CircleException('新增圓形錯誤','半徑值沒有大於0')
         else:
             circle_shape = pymunk.Circle(circle_body, randint(*self.config.RANDOM_RADIUS_RANGE))
 
@@ -174,6 +180,11 @@ class Engine:
 
         size = 大小 if 大小 is not None else size
         size = size if size is not None else self.config.SIZE
+        if type(size) is not tuple and  type(size) is not list:
+            raise BoxException('新增方塊錯誤','大小要2個數字組合')
+
+        if size[0] <= 0 or size[1] <= 0:
+            raise BoxException('新增方塊錯誤','大小值沒有大於0')
         box_shape = pymunk.Poly.create_box(box_body, size)
 
         box_shape.density = self.config.DENSITY
@@ -219,31 +230,72 @@ class Engine:
     
     def on_draw(self):
         self.window.clear()
+        self.draw()
+
+    def draw(self):
         self.space.debug_draw(options)
 
 
-
     def default_update(self, dt):
-        self.space.step(dt)
+        small_dt = dt / 4
+        for i in range(4):
+            self.space.step(small_dt)
 
+
+    def check_event_handler_params(self):
+        
+        # 4 params for on_mouse_press
+        #pyglet example: def on_mouse_press(x, y, button, modifiers):
+        if hasattr(toplevel, "on_mouse_press"):
+            sig = signature(toplevel.on_mouse_press)
+            if len(sig.parameters) != 4 :
+                raise EventException('事件處理函式錯誤', ' def on_mouse_press()函式 需要有4個參數')     
+        
+        if hasattr(toplevel, "當滑鼠被按下"):
+            sig = signature(toplevel.當滑鼠被按下)
+            if len(sig.parameters) != 4 :
+                raise EventException('事件處理函式錯誤', ' def 當滑鼠被按下()函式 需要有4個參數')        
+
+        # 6 params for on_mouse_drag
+        #pyglet example: def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
+        if hasattr(toplevel, "on_mouse_drag"):
+            sig = signature(toplevel.on_mouse_drag)
+            if len(sig.parameters) != 6 :
+                raise EventException('事件處理函式錯誤', ' def on_mouse_drag()函式 需要有6個參數')     
+        
+        if hasattr(toplevel, "當滑鼠被拖曳"):
+            sig = signature(toplevel.當滑鼠被拖曳)
+            if len(sig.parameters) != 6 :
+                raise EventException('事件處理函式錯誤', ' def 當滑鼠被拖曳()函式 需要有6個參數')
 
     def run(self):
+
+        self.check_event_handler_params()
+
         self.window = pyglet.window.Window(self.config.WINDOW_WIDTH,
                                             self.config.WINDOW_HEIGHT, 
                                             resizable=False)        
         
         self.on_draw = self.window.event(self.on_draw)
-
-        if hasattr(toplevel, "on_mouse_press"):
+        
+    
+        if hasattr(toplevel, "當滑鼠被按下"):
+            toplevel.當滑鼠被按下.__name__ = "on_mouse_press"
+            toplevel.當滑鼠被按下 = self.window.event(toplevel.當滑鼠被按下)
+        elif hasattr(toplevel, "on_mouse_press"):
             toplevel.on_mouse_press = self.window.event(toplevel.on_mouse_press)
 
-        if hasattr(toplevel, "on_mouse_drag"):
+        if hasattr(toplevel, "當滑鼠被拖曳"):
+            toplevel.當滑鼠被拖曳.__name__ = "on_mouse_drag"
+            toplevel.當滑鼠被拖曳 = self.window.event(toplevel.當滑鼠被拖曳)
+        elif hasattr(toplevel, "on_mouse_drag"):
             toplevel.on_mouse_drag = self.window.event(toplevel.on_mouse_drag)
 
-        if hasattr(toplevel, "當按下按鍵"):
-            toplevel.當按下按鍵.__name__ = "on_key_press"
-            toplevel.當按下按鍵 = self.window.event(toplevel.當按下按鍵)
-            
+        if hasattr(toplevel, "當鍵盤被按下"):
+            toplevel.當鍵盤被按下.__name__ = "on_key_press"
+            toplevel.當鍵盤被按下 = self.window.event(toplevel.當鍵盤被按下)
+        elif hasattr(toplevel, "on_key_press"):
+            toplevel.on_key_press = self.window.event(toplevel.on_key_press)            
 
         if hasattr(toplevel,"update"):
             pyglet.clock.schedule_interval(toplevel.update, self.config.DT)

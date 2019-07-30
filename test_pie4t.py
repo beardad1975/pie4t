@@ -1,7 +1,7 @@
 import unittest
 
 import pie4t, pyglet, pymunk
-import exception
+import wrapper
 
 from math import radians, degrees, pi
 
@@ -95,7 +95,7 @@ class TestPie4tSetup(unittest.TestCase):
         self.assertEqual(self.stage.config.DENSITY, d)
         self.assertEqual(self.stage.預設密度, d)
 
-class TestPie4tCircle(unittest.TestCase):
+class TestPie4tdegree(unittest.TestCase):
     def setUp(self):
         self.stage = pie4t.Engine()
 
@@ -110,17 +110,17 @@ class TestPie4tCircle(unittest.TestCase):
         self.assertEqual(circle.shape.area, pi * r * r)
 
     def test_radius_not_bigger_than_0(self):
-        with self.assertRaises(exception.CircleException):
+        with self.assertRaises(pie4t.CircleException):
             self.circle = self.stage.add_circle(radius=0)
 
-        with self.assertRaises(exception.CircleException):
+        with self.assertRaises(pie4t.CircleException):
             self.circle = self.stage.add_circle(radius=-5)
 
     def test_半徑_not_bigger_than_0(self):
-        with self.assertRaises(exception.CircleException):
+        with self.assertRaises(pie4t.CircleException):
             self.circle = self.stage.add_circle(半徑=0)
 
-        with self.assertRaises(exception.CircleException):
+        with self.assertRaises(pie4t.CircleException):
             self.circle = self.stage.add_circle(半徑=-5)
 
     def test_default_body_type(self):
@@ -148,7 +148,90 @@ class TestPie4tCircle(unittest.TestCase):
         circle = self.stage.add_circle(kinematic=True)
         self.assertIs(circle.body.body_type, pymunk.Body.KINEMATIC)
 
+    def test_新增圓形(self):
+        circle = self.stage.新增圓形()
+        self.assertIsInstance(circle.shape, pymunk.Circle)
+        self.assertIsInstance(circle, wrapper.BodyShapeWrapper)
 
+class TestPie4tBox(unittest.TestCase):
+    def setUp(self):
+        self.stage = pie4t.Engine()
+
+    def test_set_size(self):
+        width = 3
+        height = 7
+        box = self.stage.add_box(size=(width, height)) 
+        self.assertEqual(box.shape.area, width * height)
+
+    def test_set_大小(self):
+        width = 3
+        height = 7
+        box = self.stage.add_box(大小=(width, height)) 
+        self.assertEqual(box.shape.area, width * height)
+
+    def test_size_not_bigger_than_0(self):
+        with self.assertRaises(pie4t.BoxException):
+            self.stage.add_box(size=[0, 5])
+
+        with self.assertRaises(pie4t.BoxException):
+            self.stage.add_box(size=[8, 0])
+
+        with self.assertRaises(pie4t.BoxException):
+            self.stage.add_box(size=[-5, 5])
+
+        with self.assertRaises(pie4t.BoxException):
+            self.stage.add_box(size=[1, -1])
+
+    def test_大小_not_bigger_than_0(self):
+        with self.assertRaises(pie4t.BoxException):
+            self.stage.add_box(大小=[0, 5])
+
+        with self.assertRaises(pie4t.BoxException):
+            self.stage.add_box(大小=[8, 0])
+
+        with self.assertRaises(pie4t.BoxException):
+            self.stage.add_box(大小=[-5, 5])
+
+        with self.assertRaises(pie4t.BoxException):
+            self.stage.add_box(大小=[1, -1])
+
+    def test_set_static(self):
+        box = self.stage.add_box(static=False)
+        self.assertIs(box.body.body_type, pymunk.Body.DYNAMIC)
+
+        box = self.stage.add_box(static=True)
+        self.assertIs(box.body.body_type, pymunk.Body.STATIC)
+
+    def test_set_固定(self):
+        box = self.stage.add_box(固定=False)
+        self.assertIs(box.body.body_type, pymunk.Body.DYNAMIC)
+
+        box = self.stage.add_box(固定=True)
+        self.assertIs(box.body.body_type, pymunk.Body.STATIC)
+
+    def test_set_kinematic(self):
+        box = self.stage.add_box(kinematic=False)
+        self.assertIs(box.body.body_type, pymunk.Body.DYNAMIC)
+
+        box = self.stage.add_box(kinematic=True)
+        self.assertIs(box.body.body_type, pymunk.Body.KINEMATIC)
+
+    def test_新增方塊(self):
+        box = self.stage.新增方塊()
+        self.assertIsInstance(box.shape, pymunk.Poly)
+        self.assertIsInstance(box, wrapper.BodyShapeWrapper)
+
+# class TestPie4tEventHandler(unittest.TestCase):
+#     def setUp(self):
+#         self.stage = pie4t.Engine()
+
+#     def test_on_mouse_press_params_mismatch(self):
+#         def on_mouse_press(x,y):
+#             pass
+
+
+#         with self.assertRaises(pie4t.EventException):
+#             self.stage.run()
 
 if __name__ == '__main__':
     unittest.main()
