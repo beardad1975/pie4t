@@ -6,6 +6,7 @@ import pymunk
 import pymunk.pyglet_util
 
 from wrapper import BodyShapeWrapper
+import exception
 
 
 options = pymunk.pyglet_util.DrawOptions()
@@ -126,7 +127,7 @@ class Engine:
     def 預設密度(self, d):
         self.config.DENSITY = d 
 
-    def add_circle(self, radius=None, 半徑=None, static=False, 固定=None, kinematic=False):
+    def add_circle(self, radius=None, 半徑=None, static=False, 固定=False, kinematic=False):
         if static or 固定 :
             circle_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         elif kinematic:
@@ -135,8 +136,11 @@ class Engine:
             circle_body = pymunk.Body(body_type=pymunk.Body.DYNAMIC) 
 
         radius = 半徑 if 半徑 is not None else radius
-        if radius is not None:
-            circle_shape = pymunk.Circle(circle_body, radius)
+        if radius is not None :
+            if radius > 0:
+                circle_shape = pymunk.Circle(circle_body, radius)
+            else:
+                raise exception.CircleException('新增圓形錯誤','半徑值沒有大於0')
         else:
             circle_shape = pymunk.Circle(circle_body, randint(*self.config.RANDOM_RADIUS_RANGE))
 
@@ -158,7 +162,7 @@ class Engine:
         return  BodyShapeWrapper(circle_body, circle_shape)
 
     def 新增圓形(self, **kwargs):
-        self.add_circle(**kwargs)
+        return self.add_circle(**kwargs)
 
     def add_box(self,size=None,大小=None, static=False, 固定=False,kinematic=False):
         if static or 固定 :

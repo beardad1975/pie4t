@@ -1,8 +1,9 @@
 import unittest
 
-import pie4t, pyglet
+import pie4t, pyglet, pymunk
+import exception
 
-from math import radians, degrees
+from math import radians, degrees, pi
 
 
 class TestPie4tInit(unittest.TestCase):
@@ -93,6 +94,61 @@ class TestPie4tSetup(unittest.TestCase):
         self.stage.預設密度 = d
         self.assertEqual(self.stage.config.DENSITY, d)
         self.assertEqual(self.stage.預設密度, d)
+
+class TestPie4tCircle(unittest.TestCase):
+    def setUp(self):
+        self.stage = pie4t.Engine()
+
+    def test_set_radius(self):
+        r = 5
+        circle = self.stage.add_circle(radius=r)
+        self.assertEqual(circle.shape.area, pi * r * r)
+
+    def test_set_半徑(self):
+        r = 9
+        circle = self.stage.add_circle(半徑=r)
+        self.assertEqual(circle.shape.area, pi * r * r)
+
+    def test_radius_not_bigger_than_0(self):
+        with self.assertRaises(exception.CircleException):
+            self.circle = self.stage.add_circle(radius=0)
+
+        with self.assertRaises(exception.CircleException):
+            self.circle = self.stage.add_circle(radius=-5)
+
+    def test_半徑_not_bigger_than_0(self):
+        with self.assertRaises(exception.CircleException):
+            self.circle = self.stage.add_circle(半徑=0)
+
+        with self.assertRaises(exception.CircleException):
+            self.circle = self.stage.add_circle(半徑=-5)
+
+    def test_default_body_type(self):
+        circle = self.stage.add_circle()
+        self.assertIs(circle.body.body_type, pymunk.Body.DYNAMIC)
+
+    def test_set_static(self):
+        circle = self.stage.add_circle(static=False)
+        self.assertIs(circle.body.body_type, pymunk.Body.DYNAMIC)
+
+        circle = self.stage.add_circle(static=True)
+        self.assertIs(circle.body.body_type, pymunk.Body.STATIC)
+
+    def test_set_固定(self):
+        circle = self.stage.add_circle(固定=False)
+        self.assertIs(circle.body.body_type, pymunk.Body.DYNAMIC)
+
+        circle = self.stage.add_circle(固定=True)
+        self.assertIs(circle.body.body_type, pymunk.Body.STATIC)
+
+    def test_set_kinematic(self):
+        circle = self.stage.add_circle(kinematic=False)
+        self.assertIs(circle.body.body_type, pymunk.Body.DYNAMIC)
+
+        circle = self.stage.add_circle(kinematic=True)
+        self.assertIs(circle.body.body_type, pymunk.Body.KINEMATIC)
+
+
 
 if __name__ == '__main__':
     unittest.main()
