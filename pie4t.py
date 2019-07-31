@@ -268,6 +268,42 @@ class Engine:
             if len(sig.parameters) != 6 :
                 raise EventException('事件處理函式錯誤', ' def 當滑鼠被拖曳()函式 需要有6個參數')
 
+        # 4 params for on_mouse_release
+        #pyglet example: def on_mouse_release(x, y, button, modifiers):
+        if hasattr(toplevel, "on_mouse_release"):
+            sig = signature(toplevel.on_mouse_release)
+            if len(sig.parameters) != 4 :
+                raise EventException('事件處理函式錯誤', ' def on_mouse_release()函式 需要有4個參數')     
+        
+        if hasattr(toplevel, "當滑鼠被放開"):
+            sig = signature(toplevel.當滑鼠被放開)
+            if len(sig.parameters) != 4 :
+                raise EventException('事件處理函式錯誤', ' def 當滑鼠被放開()函式 需要有4個參數')
+
+        # 2 params for on_key_press
+        #pyglet example: def on_key_press(symbol, modifiers):
+        if hasattr(toplevel, "on_key_press"):
+            sig = signature(toplevel.on_key_press)
+            if len(sig.parameters) != 2 :
+                raise EventException('事件處理函式錯誤', ' def on_key_press()函式 需要有2個參數')     
+        
+        if hasattr(toplevel, "當鍵盤被按下"):
+            sig = signature(toplevel.當鍵盤被按下)
+            if len(sig.parameters) != 2 :
+                raise EventException('事件處理函式錯誤', ' def 當鍵盤被按下()函式 需要有2個參數')
+
+        # 2 params for on_key_release
+        #pyglet example: def on_key_release(symbol, modifiers):
+        if hasattr(toplevel, "on_key_release"):
+            sig = signature(toplevel.on_key_release)
+            if len(sig.parameters) != 2 :
+                raise EventException('事件處理函式錯誤', ' def on_key_release()函式 需要有2個參數')     
+        
+        if hasattr(toplevel, "當鍵盤被放開"):
+            sig = signature(toplevel.當鍵盤被放開)
+            if len(sig.parameters) != 2 :
+                raise EventException('事件處理函式錯誤', ' def 當鍵盤被放開()函式 需要有2個參數')
+
     def run(self):
 
         self.check_event_handler_params()
@@ -291,11 +327,23 @@ class Engine:
         elif hasattr(toplevel, "on_mouse_drag"):
             toplevel.on_mouse_drag = self.window.event(toplevel.on_mouse_drag)
 
+        if hasattr(toplevel, "當滑鼠被放開"):
+            toplevel.當滑鼠被放開.__name__ = "on_mouse_release"
+            toplevel.當滑鼠被放開 = self.window.event(toplevel.當滑鼠被放開)
+        elif hasattr(toplevel, "on_mouse_release"):
+            toplevel.on_mouse_release = self.window.event(toplevel.on_mouse_release)
+
         if hasattr(toplevel, "當鍵盤被按下"):
             toplevel.當鍵盤被按下.__name__ = "on_key_press"
             toplevel.當鍵盤被按下 = self.window.event(toplevel.當鍵盤被按下)
         elif hasattr(toplevel, "on_key_press"):
             toplevel.on_key_press = self.window.event(toplevel.on_key_press)            
+
+        if hasattr(toplevel, "當鍵盤被放開"):
+            toplevel.當鍵盤被放開.__name__ = "on_key_release"
+            toplevel.當鍵盤被放開 = self.window.event(toplevel.當鍵盤被放開)
+        elif hasattr(toplevel, "on_key_release"):
+            toplevel.on_key_release = self.window.event(toplevel.on_key_release)            
 
         if hasattr(toplevel,"update"):
             pyglet.clock.schedule_interval(toplevel.update, self.config.DT)
