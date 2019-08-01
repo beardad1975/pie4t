@@ -1,5 +1,5 @@
 import math
-
+import pymunk
 
 class BodyShapeWrapper:
     def __init__(self, body, shape):
@@ -45,6 +45,8 @@ class BodyShapeWrapper:
     @position.setter
     def position(self, p):
         self.body.position = p
+        if self.body.body_type is pymunk.Body.STATIC:
+            self.body.space.reindex_static()
 
     @property
     def 位置(self):
@@ -53,6 +55,30 @@ class BodyShapeWrapper:
     @位置.setter
     def 位置(self, p):
         self.body.position = p
+        if self.body.body_type is pymunk.Body.STATIC:
+            self.body.space.reindex_static()
+
+    @property
+    def pos_x(self):
+        return self.body.position[0]
+
+    @pos_x.setter
+    def pos_x(self, x):
+        ori_y = self.body.position[1]
+        self.body.position = (x, ori_y)
+        if self.body.body_type is pymunk.Body.STATIC:
+            self.body.space.reindex_static()
+
+    @property
+    def pos_y(self):
+        return self.body.position[1]
+
+    @pos_y.setter
+    def pos_y(self, y):
+        ori_x = self.body.position[0]
+        self.body.position = (ori_x, y)
+        if self.body.body_type is pymunk.Body.STATIC:
+            self.body.space.reindex_static()
 
     @property
     def velocity(self):

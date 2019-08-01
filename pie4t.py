@@ -1,6 +1,7 @@
 import sys
 from random import choice, randint, random
 from inspect import signature
+import math
 
 import pyglet
 from pyglet.window import key
@@ -25,12 +26,17 @@ class Config:
         self.DT = 0.02
         #used internally
         self.DENSITY = 1
-        self.GRAVITY = (0, 0)  
+        self.GRAVITY = (0, 0)
+        self.X = self.WINDOW_WIDTH // 2
+        self.Y = self.WINDOW_HEIGHT // 2
         self.SIZE = (20, 20)
+        self.SIZE_WIDTH = 20
+        self.SIZE_HEIGHT = 20
         self.RANDOM_RADIUS_RANGE = (10,40) 
         self.RANDOM_VELOCITY_RANGE = (-300, 300)
         self.RANDOM_X_RANGE = (int(self.WINDOW_WIDTH*0.4), int(self.WINDOW_WIDTH*0.6))
         self.RANDOM_Y_RANGE = (int(self.WINDOW_HEIGHT*0.4), int(self.WINDOW_HEIGHT*0.6))
+        self.RAMDOM_SIZE_RANGE = (5, 30)
         self.WALL_THICKNESS = 10 
     
 
@@ -44,10 +50,11 @@ class Color:
     cyan = (0,255,255,255)
     purple = (255,0,255,255)
     white = (255,255,255,255)
-    black = (0, 0, 0, 0) 
+    black = (0, 0, 0, 0)
+    gray = (120, 120, 120, 255) 
 
     def random(self):
-        c = choice(['red', 'orange', 'yellow', 'green', 'blue', 'cyan', 'purple', 'white'])
+        c = choice(['red', 'orange', 'yellow', 'green', 'blue', 'cyan', 'purple'])
         return getattr(self, c)
 
 color = Color()
@@ -170,7 +177,13 @@ class Engine:
     def 新增圓形(self, **kwargs):
         return self.add_circle(**kwargs)
 
-    def add_box(self,size=None,大小=None, static=False, 固定=False,kinematic=False):
+    def add_box(self,
+                pos_x=None, 位置x=None,
+                pos_y=None, 位置y=None, 
+                width=None, 寬=None, 
+                height=None, 高=None, 
+                static=False, 固定=False,
+                kinematic=False, random_flag=False):
         if static or 固定 :
             box_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         elif kinematic:
@@ -178,14 +191,24 @@ class Engine:
         else:
             box_body = pymunk.Body(body_type=pymunk.Body.DYNAMIC) 
 
-        size = 大小 if 大小 is not None else size
-        size = size if size is not None else self.config.SIZE
-        if type(size) is not tuple and  type(size) is not list:
-            raise BoxException('新增方塊錯誤','大小要2個數字組合')
+        
+        tmp_width = 寬 if 寬 is not None else width
+        if not random_flag:
+            tmp_width = tmp_width if tmp_width is not None else self.config.SIZE_WIDTH
+        else:
+            tmp_width = tmp_width if tmp_width is not None else randint(*self.config.RAMDOM_SIZE_RANGE)
 
-        if size[0] <= 0 or size[1] <= 0:
-            raise BoxException('新增方塊錯誤','大小值沒有大於0')
-        box_shape = pymunk.Poly.create_box(box_body, size)
+        if tmp_width <= 0: raise BoxException('新增方塊錯誤','寬(width)要大於0')
+        
+        tmp_height = 高 if 高 is not None else height
+        if not random_flag:
+            tmp_height = tmp_height if tmp_height is not None else self.config.SIZE_HEIGHT
+        else:
+            tmp_height = tmp_height if tmp_height is not None else randint(*self.config.RAMDOM_SIZE_RANGE)
+
+        if tmp_height <= 0: raise BoxException('新增方塊錯誤','高(height)要大於0')
+
+        box_shape = pymunk.Poly.create_box(box_body, (tmp_width, tmp_height) )
 
         box_shape.density = self.config.DENSITY
         box_shape.friction = self.config.FRICTION
@@ -195,20 +218,46 @@ class Engine:
         
 
 
-        x = randint(*self.config.RANDOM_X_RANGE)
-        y = randint(*self.config.RANDOM_Y_RANGE)
-        box_body.position = (x, y)
+        tmp_x = 位置x if 位置x is not None else pos_x
+        if not random_flag:
+            tmp_x = tmp_x if tmp_x is not None else self.config.X
+        else:
+            tmp_x = tmp_x if tmp_x is not None else randint(*self.config.RANDOM_X_RANGE)
 
-        box_body.angle = 3.1416 * random()
+        tmp_y = 位置y if 位置y is not None else pos_y
+        if not random_flag:
+            tmp_y = tmp_y if tmp_y is not None else self.config.Y
+        else:
+            tmp_y = tmp_y if tmp_y is not None else randint(*self.config.RANDOM_Y_RANGE)
 
-        box_body.velocity = ( randint(*self.config.RANDOM_VELOCITY_RANGE),
-                              randint(*self.config.RANDOM_VELOCITY_RANGE) )
+        box_body.position = (tmp_x, tmp_y)
+
+        if not random_flag:
+            box_body.angle = 0
+        else:
+            box_body.angle = 3.1416 * 2 * random()
+
+        if not random_flag:
+            box_body.velocity = (0, 0)
+        else:
+            box_body.velocity = ( randint(*self.config.RANDOM_VELOCITY_RANGE),
+                                randint(*self.config.RANDOM_VELOCITY_RANGE) )           
 
         self.space.add(box_body, box_shape)
         return  BodyShapeWrapper(box_body, box_shape)
 
     def 新增方塊(self, **kwargs):
         return self.add_box(**kwargs)
+
+    def add_random_box(self, **kwargs):
+        kwargs['random_flag'] = True
+        return self.add_box(**kwargs)                
+
+    def 新增隨機方塊(self, **kwargs):
+        kwargs['random_flag'] = True
+        return self.add_box(**kwargs) 
+
+
 
     def make_borders(self):
         self.make_one_border( (0,0), (self.config.WINDOW_WIDTH,0))
@@ -218,6 +267,14 @@ class Engine:
 
     def 產生邊界(self):
         self.make_borders()
+
+    def make_floor(self):
+        start_pos = ( int(self.config.WINDOW_WIDTH * 0.2), 40)
+        end_pos = (int(self.config.WINDOW_WIDTH * 0.8), 40)
+        self.make_one_border(start_pos, end_pos)
+
+    def 產生地面(self):
+        self.make_floor()
 
     def make_one_border(self, a, b):
         wall_body = pymunk.Body(body_type=pymunk.Body.STATIC)
@@ -236,11 +293,16 @@ class Engine:
         self.space.debug_draw(options)
 
 
-    def default_update(self, dt):
+    def engine_update(self, dt):
         small_dt = dt / 4
         for i in range(4):
             self.space.step(small_dt)
 
+    def check_and_remove_too_low(self, dt):
+        print(len(self.space.bodies), len(self.space.shapes))
+        for sh in self.space.shapes:
+            if sh.body.position.y < -400:
+                self.space.remove(sh.body, sh)
 
     def check_event_handler_params(self):
         
@@ -345,10 +407,16 @@ class Engine:
         elif hasattr(toplevel, "on_key_release"):
             toplevel.on_key_release = self.window.event(toplevel.on_key_release)            
 
-        if hasattr(toplevel,"update"):
+        if hasattr(toplevel, "引擎定期更新"):
+            pyglet.clock.schedule_interval(toplevel.引擎定期更新, self.config.DT)
+        elif hasattr(toplevel,"engine_update"):
             pyglet.clock.schedule_interval(toplevel.update, self.config.DT)
         else:
-            pyglet.clock.schedule_interval(self.default_update, self.config.DT)
+            pyglet.clock.schedule_interval(self.engine_update, self.config.DT)
+
+        pyglet.clock.schedule_interval(self.check_and_remove_too_low, 1)
+
+
         pyglet.app.run()
 
     def 開始模擬(self):
