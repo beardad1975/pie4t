@@ -38,7 +38,12 @@ class Config:
         self.RANDOM_Y_RANGE = (int(self.WINDOW_HEIGHT*0.4), int(self.WINDOW_HEIGHT*0.6))
         self.RAMDOM_SIZE_RANGE = (5, 30)
         self.WALL_THICKNESS = 10 
-    
+
+        #garbge collect bound
+        self.RIGHT_GC_BOUND = self.WINDOW_WIDTH + 1000
+        self.LEFT_GC_BOUND = -1000
+        self.TOP_GC_BOUND = self.WINDOW_HEIGHT + 1000
+        self.BOTTOM_GC_BOUND = -1000    
 
 
 class Color:
@@ -75,6 +80,8 @@ class Engine:
 
         self.space = pymunk.Space()
         self.space.gravity = self.config.GRAVITY
+
+
 
     @property
     def gravity(self):
@@ -140,6 +147,15 @@ class Engine:
     def 預設密度(self, d):
         self.config.DENSITY = d 
 
+    @property
+    def object_num(self):
+        return len(self.space.shapes)
+
+    @property
+    def 物件數量(self):
+        return len(self.space.shapes)
+    
+
     def add_circle(self, radius=None, 半徑=None, static=False, 固定=False, kinematic=False):
         if static or 固定 :
             circle_body = pymunk.Body(body_type=pymunk.Body.STATIC)
@@ -177,13 +193,12 @@ class Engine:
     def 新增圓形(self, **kwargs):
         return self.add_circle(**kwargs)
 
-    def add_box(self,
-                pos_x=None, 位置x=None,
-                pos_y=None, 位置y=None, 
-                width=None, 寬=None, 
-                height=None, 高=None, 
-                static=False, 固定=False,
-                kinematic=False, random_flag=False):
+    def add_box(self, pos_x=None, pos_y=None, width=None,
+                height=None, static=False, kinematic=False,
+                位置x=None, 位置y=None, 寬=None, 高=None, 
+                固定=False, random_flag=False):
+        """add box in physics stage """
+
         if static or 固定 :
             box_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         elif kinematic:
@@ -246,16 +261,16 @@ class Engine:
         self.space.add(box_body, box_shape)
         return  BodyShapeWrapper(box_body, box_shape)
 
-    def 新增方塊(self, **kwargs):
-        return self.add_box(**kwargs)
+    def 新增方塊(self, *args, **kwargs):
+        return self.add_box(*args, **kwargs)
 
-    def add_random_box(self, **kwargs):
+    def add_random_box(self, *args,  **kwargs):
         kwargs['random_flag'] = True
-        return self.add_box(**kwargs)                
+        return self.add_box(*args, **kwargs)                
 
-    def 新增隨機方塊(self, **kwargs):
+    def 新增隨機方塊(self, *args, **kwargs):
         kwargs['random_flag'] = True
-        return self.add_box(**kwargs) 
+        return self.add_box(*args, **kwargs) 
 
 
 
@@ -287,21 +302,20 @@ class Engine:
     
     def on_draw(self):
         self.window.clear()
-        self.draw()
-
-    def draw(self):
         self.space.debug_draw(options)
-
-
+        
     def engine_update(self, dt):
         small_dt = dt / 4
         for i in range(4):
             self.space.step(small_dt)
 
-    def check_and_remove_too_low(self, dt):
-        print(len(self.space.bodies), len(self.space.shapes))
+    def check_and_remove_out_of_gc_bound(self, dt):
+        #print(len(self.space.bodies), len(self.space.shapes))
         for sh in self.space.shapes:
-            if sh.body.position.y < -400:
+            x = sh.body.position.x
+            y = sh.body.position.y
+            if x > self.config.RIGHT_GC_BOUND or x < self.config.LEFT_GC_BOUND or \
+               y > self.config.TOP_GC_BOUND or y < self.config.BOTTOM_GC_BOUND:
                 self.space.remove(sh.body, sh)
 
     def check_event_handler_params(self):
@@ -368,7 +382,7 @@ class Engine:
 
     def run(self):
 
-        self.check_event_handler_params()
+        #self.check_event_handler_params()
 
         self.window = pyglet.window.Window(self.config.WINDOW_WIDTH,
                                             self.config.WINDOW_HEIGHT, 
@@ -407,6 +421,8 @@ class Engine:
         elif hasattr(toplevel, "on_key_release"):
             toplevel.on_key_release = self.window.event(toplevel.on_key_release)            
 
+
+
         if hasattr(toplevel, "引擎定期更新"):
             pyglet.clock.schedule_interval(toplevel.引擎定期更新, self.config.DT)
         elif hasattr(toplevel,"engine_update"):
@@ -414,7 +430,12 @@ class Engine:
         else:
             pyglet.clock.schedule_interval(self.engine_update, self.config.DT)
 
-        pyglet.clock.schedule_interval(self.check_and_remove_too_low, 1)
+        if hasattr(toplevel, "更新"):
+            pyglet.clock.schedule_interval(toplevel.更新, self.config.DT)
+        elif hasattr(toplevel,"update"):
+            pyglet.clock.schedule_interval(toplevel.update, self.config.DT)
+
+        pyglet.clock.schedule_interval(self.check_and_remove_out_of_gc_bound, 2)
 
 
         pyglet.app.run()

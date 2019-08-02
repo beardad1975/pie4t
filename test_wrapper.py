@@ -47,6 +47,31 @@ class TestWrapperClass(unittest.TestCase):
         self.assertEqual(pos, self.box.body.position)
         self.assertEqual(self.box.位置, pos)
 
+    def test_set_and_get_pos_x(self):
+        x  = 700
+        self.box.pos_x = x
+        self.assertEqual(self.box.body.position.x , x)
+        self.assertEqual(self.box.pos_x, x)
+
+    def test_set_and_get_位置x(self):
+        x  = -100
+        self.box.位置x = x
+        self.assertEqual(self.box.body.position.x , x)
+        self.assertEqual(self.box.位置x, x)
+
+    def test_set_and_get_pos_y(self):
+        y  = 700
+        self.box.pos_y = y
+        self.assertEqual(self.box.body.position.y , y)
+        self.assertEqual(self.box.pos_y, y)
+
+    def test_set_and_get_位置y(self):
+        y  = -100
+        self.box.位置y = y
+        self.assertEqual(self.box.body.position.y , y)
+        self.assertEqual(self.box.位置y, y)
+
+
     def test_set_and_get_velocity(self):
         v = (10, -200)
         self.box.velocity = v

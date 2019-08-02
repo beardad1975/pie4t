@@ -60,22 +60,45 @@ class BodyShapeWrapper:
 
     @property
     def pos_x(self):
-        return self.body.position[0]
+        return self.body.position.x
 
     @pos_x.setter
     def pos_x(self, x):
-        ori_y = self.body.position[1]
+        ori_y = self.body.position.y
         self.body.position = (x, ori_y)
         if self.body.body_type is pymunk.Body.STATIC:
             self.body.space.reindex_static()
 
     @property
+    def 位置x(self):
+        return self.body.position.x
+
+    @位置x.setter
+    def 位置x(self, x):
+        ori_y = self.body.position.y
+        self.body.position = (x, ori_y)
+        if self.body.body_type is pymunk.Body.STATIC:
+            self.body.space.reindex_static()
+
+
+    @property
     def pos_y(self):
-        return self.body.position[1]
+        return self.body.position.y
 
     @pos_y.setter
     def pos_y(self, y):
-        ori_x = self.body.position[0]
+        ori_x = self.body.position.x
+        self.body.position = (ori_x, y)
+        if self.body.body_type is pymunk.Body.STATIC:
+            self.body.space.reindex_static()
+
+    @property
+    def 位置y(self):
+        return self.body.position.y
+
+    @位置y.setter
+    def 位置y(self, y):
+        ori_x = self.body.position.x
         self.body.position = (ori_x, y)
         if self.body.body_type is pymunk.Body.STATIC:
             self.body.space.reindex_static()

@@ -95,6 +95,11 @@ class TestPie4tSetup(unittest.TestCase):
         self.assertEqual(self.stage.config.DENSITY, d)
         self.assertEqual(self.stage.預設密度, d)
 
+    def test_get_and_object_num(self):
+        num = self.stage.object_num
+        self.stage.add_box()
+        self.assertEqual(num+1, self.stage.object_num)
+
 class TestPie4tdegree(unittest.TestCase):
     def setUp(self):
         self.stage = pie4t.Engine()
@@ -157,43 +162,64 @@ class TestPie4tBox(unittest.TestCase):
     def setUp(self):
         self.stage = pie4t.Engine()
 
-    def test_set_size(self):
-        width = 3
-        height = 7
-        box = self.stage.add_box(size=(width, height)) 
+    def test_add_box_position_args(self):
+        x = 100
+        y = 200
+        width = 50
+        height = 60
+        box = self.stage.add_box(x, y, width, height)
+        self.assertEqual(box.body.position, (x, y) )
         self.assertEqual(box.shape.area, width * height)
 
-    def test_set_大小(self):
+    def test_add_box_position_args(self):
+        x = 100
+        y = 200
+        width = 50
+        height = 60
+        box = self.stage.add_box(x, y, width, height)
+        self.assertEqual(box.body.position, (x, y) )
+        self.assertEqual(box.shape.area, width * height)
+
+
+
+
+    def test_set_width_height(self):
         width = 3
         height = 7
-        box = self.stage.add_box(大小=(width, height)) 
+        box = self.stage.add_box(width=width, height=height) 
+        self.assertEqual(box.shape.area, width * height)
+
+    def test_set_寬高(self):
+        width = 3
+        height = 7
+        box = self.stage.add_box(寬=width, 高=height) 
         self.assertEqual(box.shape.area, width * height)
 
     def test_size_not_bigger_than_0(self):
         with self.assertRaises(pie4t.BoxException):
-            self.stage.add_box(size=[0, 5])
+            self.stage.add_box(width=0, height=5)
 
         with self.assertRaises(pie4t.BoxException):
-            self.stage.add_box(size=[8, 0])
+            self.stage.add_box(width=8, height=0)
 
         with self.assertRaises(pie4t.BoxException):
-            self.stage.add_box(size=[-5, 5])
+            self.stage.add_box(width=-5, height=5)
 
         with self.assertRaises(pie4t.BoxException):
-            self.stage.add_box(size=[1, -1])
+            self.stage.add_box(width=1, height=-1)
 
-    def test_大小_not_bigger_than_0(self):
+    def test_寬高_not_bigger_than_0(self):
         with self.assertRaises(pie4t.BoxException):
-            self.stage.add_box(大小=[0, 5])
-
-        with self.assertRaises(pie4t.BoxException):
-            self.stage.add_box(大小=[8, 0])
+            self.stage.add_box(寬=0, 高=5)
 
         with self.assertRaises(pie4t.BoxException):
-            self.stage.add_box(大小=[-5, 5])
+            self.stage.add_box(寬=8, 高=0)
 
         with self.assertRaises(pie4t.BoxException):
-            self.stage.add_box(大小=[1, -1])
+            self.stage.add_box(寬=-5, 高=5)
+
+        with self.assertRaises(pie4t.BoxException):
+            self.stage.add_box(寬=1, 高=-1)
 
     def test_set_static(self):
         box = self.stage.add_box(static=False)
@@ -221,17 +247,6 @@ class TestPie4tBox(unittest.TestCase):
         self.assertIsInstance(box.shape, pymunk.Poly)
         self.assertIsInstance(box, wrapper.BodyShapeWrapper)
 
-# class TestPie4tEventHandler(unittest.TestCase):
-#     def setUp(self):
-#         self.stage = pie4t.Engine()
-
-#     def test_on_mouse_press_params_mismatch(self):
-#         def on_mouse_press(x,y):
-#             pass
-
-
-#         with self.assertRaises(pie4t.EventException):
-#             self.stage.run()
 
 if __name__ == '__main__':
     unittest.main()
