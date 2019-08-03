@@ -100,6 +100,42 @@ class Engine:
         self.space.gravity = g 
 
     @property
+    def gravity_x(self):
+        return self.space.gravity.x
+
+    @gravity_x.setter
+    def gravity_x(self, g_x):
+        ori_g_y = self.space.gravity.y
+        self.space.gravity = (g_x, ori_g_y)  
+
+    @property
+    def 重力x(self):
+        return self.space.gravity.x
+
+    @重力x.setter
+    def 重力x(self, g_x):
+        ori_g_y = self.space.gravity.y
+        self.space.gravity = (g_x, ori_g_y) 
+
+    @property
+    def gravity_y(self):
+        return self.space.gravity.y
+
+    @gravity_y.setter
+    def gravity_y(self, g_y):
+        ori_g_x = self.space.gravity.x
+        self.space.gravity = (ori_g_x, g_y)  
+
+    @property
+    def 重力y(self):
+        return self.space.gravity.y
+
+    @重力y.setter
+    def 重力y(self, g_y):
+        ori_g_x = self.space.gravity.x
+        self.space.gravity = (ori_g_x, g_y) 
+
+    @property
     def default_friction(self):
         return self.config.FRICTION
 

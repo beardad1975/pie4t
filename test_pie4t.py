@@ -59,6 +59,31 @@ class TestPie4tSetup(unittest.TestCase):
         self.assertEqual(self.stage.space.gravity, g)
         self.assertEqual(self.stage.重力, g)
 
+    def test_get_and_set_gravity_x(self):
+        g_x =  -500
+        self.stage.gravity_x = g_x
+        self.assertEqual(self.stage.space.gravity.x, g_x)
+        self.assertEqual(self.stage.gravity_x, g_x)
+
+    def test_get_and_set_重力x(self):
+        g_x =  -500
+        self.stage.重力x = g_x
+        self.assertEqual(self.stage.space.gravity.x, g_x)
+        self.assertEqual(self.stage.重力x, g_x)
+
+    def test_get_and_set_gravity_y(self):
+        g_y =  -1000
+        self.stage.gravity_y = g_y
+        self.assertEqual(self.stage.space.gravity.y, g_y)
+        self.assertEqual(self.stage.gravity_y, g_y)
+
+    def test_get_and_set_重力y(self):
+        g_y =  -5670
+        self.stage.重力y = g_y
+        self.assertEqual(self.stage.space.gravity.y, g_y)
+        self.assertEqual(self.stage.重力y, g_y)
+
+
     def test_get_and_set_default_friction(self):
         fr = 0.8
         self.stage.default_friction = fr

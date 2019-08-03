@@ -59,11 +59,11 @@ class BodyShapeWrapper:
             self.body.space.reindex_static()
 
     @property
-    def pos_x(self):
+    def position_x(self):
         return self.body.position.x
 
-    @pos_x.setter
-    def pos_x(self, x):
+    @position_x.setter
+    def position_x(self, x):
         ori_y = self.body.position.y
         self.body.position = (x, ori_y)
         if self.body.body_type is pymunk.Body.STATIC:
@@ -82,11 +82,11 @@ class BodyShapeWrapper:
 
 
     @property
-    def pos_y(self):
+    def position_y(self):
         return self.body.position.y
 
-    @pos_y.setter
-    def pos_y(self, y):
+    @position_y.setter
+    def position_y(self, y):
         ori_x = self.body.position.x
         self.body.position = (ori_x, y)
         if self.body.body_type is pymunk.Body.STATIC:
@@ -120,6 +120,44 @@ class BodyShapeWrapper:
         self.body.velocity = v
 
     @property
+    def velocity_x(self):
+        return self.body.velocity.x
+
+    @velocity_x.setter
+    def velocity_x(self, vel_x):
+        ori_vel_y = self.body.velocity.y
+        self.body.velocity = (vel_x, ori_vel_y)
+
+    @property
+    def 速度x(self):
+        return self.body.velocity.x
+
+    @速度x.setter
+    def 速度x(self, vel_x):
+        ori_vel_y = self.body.velocity.y
+        self.body.velocity = (vel_x, ori_vel_y)
+
+    @property
+    def velocity_y(self):
+        return self.body.velocity.y
+
+    @velocity_y.setter
+    def velocity_y(self, vel_y):
+        ori_vel_x = self.body.velocity.x
+        self.body.velocity = (ori_vel_x, vel_y)
+
+    @property
+    def 速度y(self):
+        return self.body.velocity.y
+
+    @速度y.setter
+    def 速度y(self, vel_y):
+        ori_vel_x = self.body.velocity.x
+        self.body.velocity = (ori_vel_x, vel_y)
+
+
+
+    @property
     def force(self):
         return self.body.force
 
@@ -127,21 +165,60 @@ class BodyShapeWrapper:
     def force(self, f):
         self.body.force = f
 
-    @property
-    def 力(self):
-        return self.body.force
+    # @property
+    # def 施力(self):
+    #     return self.body.force
 
-    @力.setter
-    def 力(self, f):
-        self.body.force = f
+    # @施力.setter
+    # def 施力(self, f):
+    #     self.body.force = f
 
+    # @property
+    # def force_x(self):
+    #     return self.body.force.x
+
+    # @force_x.setter
+    # def force_x(self, f_x):
+    #     ori_force_y = self.body.force.y
+    #     self.body.force = (f_x, ori_force_y)
+
+    # @property
+    # def 施力x(self):
+    #     return self.body.force.x
+
+    # @施力x.setter
+    # def 施力x(self, f_x):
+    #     ori_force_y = self.body.force.y
+    #     self.body.force = (f_x, ori_force_y)
+
+    # @property
+    # def force_y(self):
+    #     return self.body.force.y
+
+    # @force_y.setter
+    # def force_y(self, f_y):
+    #     ori_force_x = self.body.force.x
+    #     self.body.force = (ori_force_x, f_y)
+
+    # @property
+    # def 施力y(self):
+    #     return self.body.force.y
+
+    # @施力y.setter
+    # def 施力y(self, f_y):
+    #     ori_force_x = self.body.force.x
+    #     self.body.force = (ori_force_x, f_y)
+
+    # angle use degree , not radian
     @property
-    def degree(self):
+    def angle(self):
         return math.degrees(self.body.angle)
 
-    @degree.setter
-    def degree(self, d):
+    @angle.setter
+    def angle(self, d):
         self.body.angle = math.radians(d)
+        if self.body.body_type is pymunk.Body.STATIC:
+            self.body.space.reindex_static()
 
     @property
     def 角度(self):
@@ -150,6 +227,8 @@ class BodyShapeWrapper:
     @角度.setter
     def 角度(self, d):
         self.body.angle = math.radians(d)
+        if self.body.body_type is pymunk.Body.STATIC:
+            self.body.space.reindex_static()
 
     @property
     def angular_velocity_degree(self):
@@ -183,22 +262,14 @@ class BodyShapeWrapper:
     def 力矩(self, t):
         self.body.torque = t
 
+    @property
+    def area(self):
+        return self.shape.area
 
-    #@property
-    #def density(self):
-    #    return self.shape.density
+    @property
+    def 面積(self):
+        return self.shape.area
 
-    #@density.setter
-    #def density(self, d):
-    #    self.shape.density = d
-
-    #@property
-    #def 密度(self):
-    #    return self.shape.density
-
-    #@密度.setter
-    #def 密度(self, d):
-    #    self.shape.density = d
 
     @property
     def elasticity(self):
@@ -247,3 +318,18 @@ class BodyShapeWrapper:
     @顏色.setter
     def 顏色(self, c):
         self.shape.color = c
+
+    def apply_impulse(self, imp_x=None, imp_y=None, 衝量x=None, 衝量y=None):
+        #print( 衝量x)
+        tmp_imp_x = 衝量x if 衝量x is not None else imp_x
+        tmp_imp_x = tmp_imp_x if tmp_imp_x is not None else 0
+        tmp_imp_y = 衝量y if 衝量y is not None else imp_y
+        tmp_imp_y = tmp_imp_y if tmp_imp_y is not None else 0 
+
+        self.body.apply_impulse_at_world_point( (tmp_imp_x, tmp_imp_y,),
+                                                self.body.position
+                                                )   
+
+    def 施加衝量(self, *args, **kwargs):
+        #print(kwargs)
+        self.apply_impulse(*args, **kwargs)

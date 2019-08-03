@@ -47,11 +47,11 @@ class TestWrapperClass(unittest.TestCase):
         self.assertEqual(pos, self.box.body.position)
         self.assertEqual(self.box.位置, pos)
 
-    def test_set_and_get_pos_x(self):
+    def test_set_and_get_position_x(self):
         x  = 700
-        self.box.pos_x = x
+        self.box.position_x = x
         self.assertEqual(self.box.body.position.x , x)
-        self.assertEqual(self.box.pos_x, x)
+        self.assertEqual(self.box.position_x, x)
 
     def test_set_and_get_位置x(self):
         x  = -100
@@ -59,11 +59,11 @@ class TestWrapperClass(unittest.TestCase):
         self.assertEqual(self.box.body.position.x , x)
         self.assertEqual(self.box.位置x, x)
 
-    def test_set_and_get_pos_y(self):
+    def test_set_and_get_position_y(self):
         y  = 700
-        self.box.pos_y = y
+        self.box.position_y = y
         self.assertEqual(self.box.body.position.y , y)
-        self.assertEqual(self.box.pos_y, y)
+        self.assertEqual(self.box.position_y, y)
 
     def test_set_and_get_位置y(self):
         y  = -100
@@ -84,23 +84,53 @@ class TestWrapperClass(unittest.TestCase):
         self.assertEqual(v, self.box.body.velocity)
         self.assertEqual(self.box.速度, v)
 
+    def test_set_and_get_velocity_x(self):
+        velocity_x = 100
+        self.box.velocity_x = velocity_x
+        self.assertEqual(self.box.body.velocity.x, velocity_x)
+        self.assertEqual(self.box.velocity_x, velocity_x)
+
+    def test_set_and_get_速度x(self):
+        velocity_x = 100
+        self.box.速度x = velocity_x
+        self.assertEqual(self.box.body.velocity.x, velocity_x)
+        self.assertEqual(self.box.速度x, velocity_x)
+
+    def test_set_and_get_velocity_y(self):
+        velocity_y = 190
+        self.box.velocity_y = velocity_y
+        self.assertEqual(self.box.body.velocity.y, velocity_y)
+        self.assertEqual(self.box.velocity_y, velocity_y)
+
+    def test_set_and_get_速度y(self):
+        velocity_y = -100
+        self.box.速度y = velocity_y
+        self.assertEqual(self.box.body.velocity.y, velocity_y)
+        self.assertEqual(self.box.速度y, velocity_y)
+
     def test_set_and_get_force(self):
         f = (10, -200)
         self.box.force = f
         self.assertEqual(f, self.box.body.force)
         self.assertEqual(self.box.force, f)
 
-    def test_set_and_get_力(self):
-        f = (10, -200)
-        self.box.力 = f
-        self.assertEqual(f, self.box.body.force)
-        self.assertEqual(self.box.力, f)
+    # def test_set_and_get_施力(self):
+    #     f = (10, -200)
+    #     self.box.施力 = f
+    #     self.assertEqual(f, self.box.body.force)
+    #     self.assertEqual(self.box.施力, f)
 
-    def test_set_and_get_degree(self):
+    # def test_set_and_get_force_x(self):
+    #     f_x = 1999
+    #     self.box.force_x = f_x
+    #     self.assertEqual(self.box.force.x, f_x)
+    #     self.assertEqual(self.box.force_x, f_x)
+
+    def test_set_and_get_angle(self):
         d = 180
-        self.box.degree = d
+        self.box.angle = d
         self.assertEqual( radians(d), self.box.body.angle)
-        self.assertEqual(self.box.degree, d)
+        self.assertEqual(self.box.angle, d)
 
     def test_set_and_get_角度(self):
         d = 180
@@ -179,6 +209,10 @@ class TestWrapperClass(unittest.TestCase):
         self.box.顏色 = c
         self.assertEqual( c, self.box.shape.color)
         self.assertEqual(self.box.顏色, c)
+
+    def test_get_area(self):
+        box2 = self.stage.add_box(width=5, height=10)
+        self.assertEqual(box2.area, 5*10)
 
 
 if __name__ == '__main__':

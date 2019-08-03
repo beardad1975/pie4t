@@ -1,15 +1,26 @@
 
-velocity_x , velocity_y  and chinese
+ok -- velocity_x , velocity_y  and chinese
 
-force_x, force y and chinese
+gravity_x  _y
 
-impulse
+no implement-- force_x, force y and chinese
+
+ok -- apply_impulse
+
+add_box with density args
+
+draw red arrow (used by on_mouse_draw)
 
 stage.all_objects   and make it like a list
 
 add_circle add_random_circle
 
+
+---next---version-------------------
+
+
 add_segment  add_random_segment
 
 add_poly add_random_poly
 
+__doc__
