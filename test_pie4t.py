@@ -125,7 +125,7 @@ class TestPie4tSetup(unittest.TestCase):
         self.stage.add_box()
         self.assertEqual(num+1, self.stage.object_num)
 
-class TestPie4tdegree(unittest.TestCase):
+class TestPie4tCircle(unittest.TestCase):
     def setUp(self):
         self.stage = pie4t.Engine()
 
@@ -271,6 +271,14 @@ class TestPie4tBox(unittest.TestCase):
         box = self.stage.新增方塊()
         self.assertIsInstance(box.shape, pymunk.Poly)
         self.assertIsInstance(box, wrapper.BodyShapeWrapper)
+
+    def test_add_box_with_density(self):
+        box = self.stage.add_box(density=100)
+        self.assertEqual(box.shape.density, 100)
+
+    def test_add_box_with_密度(self):
+        box = self.stage.add_box(密度=200)
+        self.assertEqual(box.shape.density, 200)
 
 
 if __name__ == '__main__':

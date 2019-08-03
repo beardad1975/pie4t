@@ -7,7 +7,7 @@ no implement-- force_x, force y and chinese
 
 ok -- apply_impulse
 
-add_box with density args
+ok -- add_box with density args
 
 draw red arrow (used by on_mouse_draw)
 

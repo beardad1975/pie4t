@@ -19,8 +19,8 @@ toplevel = sys.modules["__main__"]
 class Config:
     def __init__(self, width, height):
         # customizable
-        self.WINDOW_WIDTH = 600 if width is None else width
-        self.WINDOW_HEIGHT = 600 if height is None else height   
+        self.WINDOW_WIDTH = 640 if width is None else width
+        self.WINDOW_HEIGHT = 480 if height is None else height   
         self.FRICTION = 0.5 
         self.ELASTICITY = 0.8
         self.DT = 0.02
@@ -80,6 +80,8 @@ class Engine:
 
         self.space = pymunk.Space()
         self.space.gravity = self.config.GRAVITY
+
+        
 
 
 
@@ -192,7 +194,11 @@ class Engine:
         return len(self.space.shapes)
     
 
-    def add_circle(self, radius=None, 半徑=None, static=False, 固定=False, kinematic=False):
+    def add_circle(self, position_x=None, position_y=None, 
+                radius=None, static=False, kinematic=False,
+                density=None, 密度=None,
+                位置x=None, 位置y=None, 半徑=None, 
+                固定=False, random_flag=False):
         if static or 固定 :
             circle_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         elif kinematic:
@@ -209,28 +215,53 @@ class Engine:
         else:
             circle_shape = pymunk.Circle(circle_body, randint(*self.config.RANDOM_RADIUS_RANGE))
 
-        circle_shape.density = self.config.DENSITY
+        tmp_density = 密度 if 密度 is not None else density
+        if tmp_density is None:
+            tmp_density = self.config.DENSITY
+        circle_shape.density = tmp_density
+       
         circle_shape.friction = self.config.FRICTION
         circle_shape.elasticity = self.config.ELASTICITY
         
         circle_shape.color = color.random()
 
-        temp_x = randint(*self.config.RANDOM_X_RANGE)
-        temp_y = randint(*self.config.RANDOM_Y_RANGE)
-        circle_body.position = (temp_x, temp_y)
+        tmp_x = 位置x if 位置x is not None else position_x
+        if not random_flag:
+            tmp_x = tmp_x if tmp_x is not None else self.config.X
+        else:
+            tmp_x = tmp_x if tmp_x is not None else randint(*self.config.RANDOM_X_RANGE)
 
-        circle_body.velocity = (randint(*self.config.RANDOM_VELOCITY_RANGE),
-                                randint(*self.config.RANDOM_VELOCITY_RANGE)
-                                )
+        tmp_y = 位置y if 位置y is not None else position_y
+        if not random_flag:
+            tmp_y = tmp_y if tmp_y is not None else self.config.Y
+        else:
+            tmp_y = tmp_y if tmp_y is not None else randint(*self.config.RANDOM_Y_RANGE)
+
+        circle_body.position = (tmp_x, tmp_y)
+
+        if not random_flag:
+            circle_body.velocity = (0, 0)
+        else:
+            circle_body.velocity = ( randint(*self.config.RANDOM_VELOCITY_RANGE),
+                                randint(*self.config.RANDOM_VELOCITY_RANGE) )           
 
         self.space.add(circle_body, circle_shape)
         return  BodyShapeWrapper(circle_body, circle_shape)
 
-    def 新增圓形(self, **kwargs):
-        return self.add_circle(**kwargs)
+    def 新增圓形(self, *args, **kwargs):
+        return self.add_circle(*args, **kwargs)
 
-    def add_box(self, pos_x=None, pos_y=None, width=None,
+    def add_random_circle(self, *args, **kwargs):
+        kwargs['random_flag'] = True
+        return self.add_circle(*args, **kwargs) 
+
+    def 新增隨機圓形(self, *args, **kwargs):
+        kwargs['random_flag'] = True
+        return self.add_circle(*args, **kwargs) 
+
+    def add_box(self, position_x=None, position_y=None, width=None,
                 height=None, static=False, kinematic=False,
+                density=None, 密度=None,
                 位置x=None, 位置y=None, 寬=None, 高=None, 
                 固定=False, random_flag=False):
         """add box in physics stage """
@@ -261,7 +292,11 @@ class Engine:
 
         box_shape = pymunk.Poly.create_box(box_body, (tmp_width, tmp_height) )
 
-        box_shape.density = self.config.DENSITY
+        tmp_density = 密度 if 密度 is not None else density
+        if tmp_density is None:
+            tmp_density = self.config.DENSITY
+        box_shape.density = tmp_density
+        
         box_shape.friction = self.config.FRICTION
         box_shape.elasticity = self.config.ELASTICITY
         
@@ -269,13 +304,13 @@ class Engine:
         
 
 
-        tmp_x = 位置x if 位置x is not None else pos_x
+        tmp_x = 位置x if 位置x is not None else position_x
         if not random_flag:
             tmp_x = tmp_x if tmp_x is not None else self.config.X
         else:
             tmp_x = tmp_x if tmp_x is not None else randint(*self.config.RANDOM_X_RANGE)
 
-        tmp_y = 位置y if 位置y is not None else pos_y
+        tmp_y = 位置y if 位置y is not None else position_y
         if not random_flag:
             tmp_y = tmp_y if tmp_y is not None else self.config.Y
         else:
@@ -320,12 +355,12 @@ class Engine:
         self.make_borders()
 
     def make_floor(self):
-        start_pos = ( int(self.config.WINDOW_WIDTH * 0.2), 40)
-        end_pos = (int(self.config.WINDOW_WIDTH * 0.8), 40)
-        self.make_one_border(start_pos, end_pos)
+        start_pos = ( int(self.config.WINDOW_WIDTH * 0.1), 40)
+        end_pos = (int(self.config.WINDOW_WIDTH * 0.9), 40)
+        return self.make_one_border(start_pos, end_pos)
 
     def 產生地面(self):
-        self.make_floor()
+        return self.make_floor()
 
     def make_one_border(self, a, b):
         wall_body = pymunk.Body(body_type=pymunk.Body.STATIC)
@@ -333,12 +368,14 @@ class Engine:
         wall_shape.friction = self.config.FRICTION
         wall_shape.elasticity = self.config.ELASTICITY
         wall_body.position = 0, 0
-        self.space.add(wall_shape)
-
+        self.space.add( wall_body,wall_shape)
+        return BodyShapeWrapper(wall_body, wall_shape)
     
     def on_draw(self):
         self.window.clear()
         self.space.debug_draw(options)
+        self.fps_display.draw()
+
         
     def engine_update(self, dt):
         small_dt = dt / 4
@@ -425,6 +462,8 @@ class Engine:
                                             resizable=False)        
         
         self.on_draw = self.window.event(self.on_draw)
+
+        self.fps_display = pyglet.window.FPSDisplay(window=self.window)
         
     
         if hasattr(toplevel, "當滑鼠被按下"):
