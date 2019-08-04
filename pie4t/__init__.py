@@ -8,7 +8,7 @@ from pyglet.window import key
 import pymunk
 import pymunk.pyglet_util
 
-from wrapper import BodyShapeWrapper
+from pie4t.wrapper import BodyShapeWrapper
 
 
 
@@ -29,14 +29,14 @@ class Config:
         self.GRAVITY = (0, 0)
         self.X = self.WINDOW_WIDTH // 2
         self.Y = self.WINDOW_HEIGHT // 2
-        self.SIZE = (20, 20)
+        self.SIZE = (40, 40)
         self.SIZE_WIDTH = 20
         self.SIZE_HEIGHT = 20
         self.RANDOM_RADIUS_RANGE = (10,40) 
         self.RANDOM_VELOCITY_RANGE = (-300, 300)
         self.RANDOM_X_RANGE = (int(self.WINDOW_WIDTH*0.4), int(self.WINDOW_WIDTH*0.6))
         self.RANDOM_Y_RANGE = (int(self.WINDOW_HEIGHT*0.4), int(self.WINDOW_HEIGHT*0.6))
-        self.RAMDOM_SIZE_RANGE = (5, 30)
+        self.RAMDOM_SIZE_RANGE = (10, 60)
         self.WALL_THICKNESS = 10 
 
         #garbge collect bound

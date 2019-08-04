@@ -9,11 +9,11 @@ ok -- apply_impulse
 
 ok -- add_box with density args
 
-draw red arrow (used by on_mouse_draw)
+no implement -- draw red arrow (used by on_mouse_draw)
 
-stage.all_objects   and make it like a list
+no implement -- stage.all_objects   and make it like a list
 
-add_circle add_random_circle
+ok --add_circle add_random_circle
 
 
 ---next---version-------------------
