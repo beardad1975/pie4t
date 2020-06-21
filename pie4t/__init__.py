@@ -1,523 +1,187 @@
-import sys
-from random import choice, randint, random
-from inspect import signature
+import random
 import math
+import msvcrt
+import sys
+import time
+from queue import Queue, Empty
+import threading
 
-import pyglet
-from pyglet.window import key
+import arcade
+
 import pymunk
-import pymunk.pyglet_util
 
-from pie4t.wrapper import BodyShapeWrapper
+WINDOW_WIDTH = 600
+WINDOW_HEIGHT = 600
+TITLE = 'pymunk 範例 (以arcade實作)'
 
+global_space = pymunk.Space()
+global_space.gravity = (0.0, -900.0)
 
+BALL_COLORS = (arcade.color.WINDSOR_TAN,
+               arcade.color.VIVID_VIOLET,
+               arcade.color.ULTRAMARINE_BLUE,
+               arcade.color.TANGELO,
+               arcade.color.UFO_GREEN,
+               )
 
-options = pymunk.pyglet_util.DrawOptions()
-toplevel = sys.modules["__main__"]
+class PymunkCircle:
+    def __init__(self,):
+        # pymunk part
+        self.mass = 1
+        self.radius = random.randrange(10,30)
+        self.moment = pymunk.moment_for_circle(self.mass, 0, self.radius)
+        self.body = pymunk.Body(self.mass, self.moment)
+        x = random.randint(120, 380)
+        self.body.position = x, 550
+        self.physics_shape = pymunk.Circle(self.body, self.radius)
+        self.physics_shape.friction = 0.8
+        global_space.add(self.body, self.physics_shape)
+        
+        ### arcade part
+        
+        self.shape_element = arcade.ShapeElementList()
+        # circle
+        ball_color = random.choice(BALL_COLORS)
+        #s = arcade.create_ellipse_filled(0, 0, self.radius, self.radius, ball_color)
+        s = arcade.create_ellipse_filled_with_colors(0, 0, self.radius, self.radius,
+                                            ball_color, arcade.color.UNMELLOW_YELLOW)
+        self.shape_element.append(s)
+        
+        # dot
+        #s = arcade.create_ellipse_filled(self.radius-6 , 0, 2, 2, arcade.color.WHITE)
+        #self.shape_element.append(s)
+        s = arcade.create_ellipse_filled(self.radius-8 , 8, 2, 4, arcade.color.UNMELLOW_YELLOW, tilt_angle=30)
+        self.shape_element.append(s)
 
-
-class Config:
-    def __init__(self, width, height):
-        # customizable
-        self.WINDOW_WIDTH = 640 if width is None else width
-        self.WINDOW_HEIGHT = 480 if height is None else height   
-        self.FRICTION = 0.5 
-        self.ELASTICITY = 0.8
-        self.DT = 0.02
-        #used internally
-        self.DENSITY = 1
-        self.GRAVITY = (0, 0)
-        self.X = self.WINDOW_WIDTH // 2
-        self.Y = self.WINDOW_HEIGHT // 2
-        self.SIZE = (40, 40)
-        self.SIZE_WIDTH = 20
-        self.SIZE_HEIGHT = 20
-        self.RANDOM_RADIUS_RANGE = (10,40) 
-        self.RANDOM_VELOCITY_RANGE = (-300, 300)
-        self.RANDOM_X_RANGE = (int(self.WINDOW_WIDTH*0.4), int(self.WINDOW_WIDTH*0.6))
-        self.RANDOM_Y_RANGE = (int(self.WINDOW_HEIGHT*0.4), int(self.WINDOW_HEIGHT*0.6))
-        self.RAMDOM_SIZE_RANGE = (10, 60)
-        self.WALL_THICKNESS = 10 
-
-        #garbge collect bound
-        self.RIGHT_GC_BOUND = self.WINDOW_WIDTH + 1000
-        self.LEFT_GC_BOUND = -1000
-        self.TOP_GC_BOUND = self.WINDOW_HEIGHT + 1000
-        self.BOTTOM_GC_BOUND = -1000    
-
-
-class Color:
-    red = (255,0,0,255)
-    orange =  (255,165,0,255)
-    yellow = (255,255,0,255)
-    green = (0,255,0,255)
-    blue = (0,0,255,255)
-    cyan = (0,255,255,255)
-    purple = (255,0,255,255)
-    white = (255,255,255,255)
-    black = (0, 0, 0, 0)
-    gray = (120, 120, 120, 255) 
-
-    def random(self):
-        c = choice(['red', 'orange', 'yellow', 'green', 'blue', 'cyan', 'purple'])
-        return getattr(self, c)
-
-color = Color()
-
-
-class Pie4tBaseException(ValueError): pass
-class CircleException(Pie4tBaseException):pass
-class BoxException(Pie4tBaseException):pass
-class EventException(Pie4tBaseException):pass
-
-class Engine:
-    " physics impulse engine with pyglet and pymunk backended"
-
-    def __init__(self, width=None, 舞台寬=None, height=None, 舞台高=None):
-        width = 舞台寬 if 舞台寬 is not None else width
-        height = 舞台高 if 舞台高 is not None else height
-        self.config = Config(width, height)
-
-        self.space = pymunk.Space()
-        self.space.gravity = self.config.GRAVITY
-
+        
+    def draw(self):
+        self.shape_element.center_x = self.body.position.x
+        self.shape_element.center_y = self.body.position.y
+        self.shape_element.angle = math.degrees(self.body.angle)
+        self.shape_element.draw()
         
 
 
 
-    @property
-    def gravity(self):
-        return self.space.gravity
+class PymunkStaticLine:
+    def __init__(self, a, b):
+        # pymunk part
+        self.a = a
+        self.b = b
+        self.body = pymunk.Body(body_type=pymunk.Body.STATIC)
+        self.body.position = a
+        a_b_delta = (b[0] - a[0], b[1]-a[1])
+        self.physics_shape = pymunk.Segment(self.body,(0,0), a_b_delta, 3)
+        self.physics_shape.friction = 0.8
+        global_space.add(self.physics_shape)
+        
+        #arcade part
+        self.shape_element = arcade.ShapeElementList()
+        self.line_shape = arcade.create_line(a[0], a[1], b[0], b[1], arcade.color.YELLOW_ORANGE, 3)
 
-    @gravity.setter
-    def gravity(self, g):
-        self.space.gravity = g 
-
-    @property
-    def 重力(self):
-        return self.space.gravity
-
-    @重力.setter
-    def 重力(self, g):
-        self.space.gravity = g 
-
-    @property
-    def gravity_x(self):
-        return self.space.gravity.x
-
-    @gravity_x.setter
-    def gravity_x(self, g_x):
-        ori_g_y = self.space.gravity.y
-        self.space.gravity = (g_x, ori_g_y)  
-
-    @property
-    def 重力x(self):
-        return self.space.gravity.x
-
-    @重力x.setter
-    def 重力x(self, g_x):
-        ori_g_y = self.space.gravity.y
-        self.space.gravity = (g_x, ori_g_y) 
-
-    @property
-    def gravity_y(self):
-        return self.space.gravity.y
-
-    @gravity_y.setter
-    def gravity_y(self, g_y):
-        ori_g_x = self.space.gravity.x
-        self.space.gravity = (ori_g_x, g_y)  
-
-    @property
-    def 重力y(self):
-        return self.space.gravity.y
-
-    @重力y.setter
-    def 重力y(self, g_y):
-        ori_g_x = self.space.gravity.x
-        self.space.gravity = (ori_g_x, g_y) 
-
-    @property
-    def default_friction(self):
-        return self.config.FRICTION
-
-    @default_friction.setter
-    def default_friction(self, fr):
-        self.config.FRICTION = fr 
-
-    @property
-    def 預設摩擦(self):
-        return self.config.FRICTION
-
-    @預設摩擦.setter
-    def 預設摩擦(self, fr):
-        self.config.FRICTION = fr
-
-    @property
-    def default_elasticity(self):
-        return self.config.ELASTICITY
-
-    @default_elasticity.setter
-    def default_elasticity(self, e):
-        self.config.ELASTICITY = e 
-
-    @property
-    def 預設彈性(self):
-        return self.config.ELASTICITY
-
-    @預設彈性.setter
-    def 預設彈性(self, e):
-        self.config.ELASTICITY = e 
-
-    @property
-    def default_density(self):
-        return self.config.DENSITY
-
-    @default_density.setter
-    def default_density(self, d):
-        self.config.DENSITY = d 
-
-    @property
-    def 預設密度(self):
-        return self.config.DENSITY
-
-    @預設密度.setter
-    def 預設密度(self, d):
-        self.config.DENSITY = d 
-
-    @property
-    def object_num(self):
-        return len(self.space.shapes)
-
-    @property
-    def 物件數量(self):
-        return len(self.space.shapes)
+        
+    
+    def draw(self):
+        
+        self.line_shape.draw()
+        
+    
     
 
-    def add_circle(self, position_x=None, position_y=None, 
-                radius=None, static=False, kinematic=False,
-                density=None, 密度=None,
-                位置x=None, 位置y=None, 半徑=None, 
-                固定=False, random_flag=False):
-        if static or 固定 :
-            circle_body = pymunk.Body(body_type=pymunk.Body.STATIC)
-        elif kinematic:
-            circle_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
-        else:
-            circle_body = pymunk.Body(body_type=pymunk.Body.DYNAMIC) 
 
-        radius = 半徑 if 半徑 is not None else radius
-        if radius is not None :
-            if radius > 0:
-                circle_shape = pymunk.Circle(circle_body, radius)
-            else:
-                raise CircleException('新增圓形錯誤','半徑值沒有大於0')
-        else:
-            circle_shape = pymunk.Circle(circle_body, randint(*self.config.RANDOM_RADIUS_RANGE))
 
-        tmp_density = 密度 if 密度 is not None else density
-        if tmp_density is None:
-            tmp_density = self.config.DENSITY
-        circle_shape.density = tmp_density
-       
-        circle_shape.friction = self.config.FRICTION
-        circle_shape.elasticity = self.config.ELASTICITY
+class PymunkGame(arcade.Window):
+    def __init__(self):
+        super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, TITLE)
+        self.set_update_rate(1/60)
+        self.ball_list = []
+        self.line_list = []
+
+        self.cmd_queue = Queue()
         
-        circle_shape.color = color.random()
-
-        tmp_x = 位置x if 位置x is not None else position_x
-        if not random_flag:
-            tmp_x = tmp_x if tmp_x is not None else self.config.X
-        else:
-            tmp_x = tmp_x if tmp_x is not None else randint(*self.config.RANDOM_X_RANGE)
-
-        tmp_y = 位置y if 位置y is not None else position_y
-        if not random_flag:
-            tmp_y = tmp_y if tmp_y is not None else self.config.Y
-        else:
-            tmp_y = tmp_y if tmp_y is not None else randint(*self.config.RANDOM_Y_RANGE)
-
-        circle_body.position = (tmp_x, tmp_y)
-
-        if not random_flag:
-            circle_body.velocity = (0, 0)
-        else:
-            circle_body.velocity = ( randint(*self.config.RANDOM_VELOCITY_RANGE),
-                                randint(*self.config.RANDOM_VELOCITY_RANGE) )           
-
-        self.space.add(circle_body, circle_shape)
-        return  BodyShapeWrapper(circle_body, circle_shape)
-
-    def 新增圓形(self, *args, **kwargs):
-        return self.add_circle(*args, **kwargs)
-
-    def add_random_circle(self, *args, **kwargs):
-        kwargs['random_flag'] = True
-        return self.add_circle(*args, **kwargs) 
-
-    def 新增隨機圓形(self, *args, **kwargs):
-        kwargs['random_flag'] = True
-        return self.add_circle(*args, **kwargs) 
-
-    def add_box(self, position_x=None, position_y=None, width=None,
-                height=None, static=False, kinematic=False,
-                density=None, 密度=None,
-                位置x=None, 位置y=None, 寬=None, 高=None, 
-                固定=False, random_flag=False):
-        """add box in physics stage """
-
-        if static or 固定 :
-            box_body = pymunk.Body(body_type=pymunk.Body.STATIC)
-        elif kinematic:
-            box_body = pymunk.Body(body_type=pymunk.Body.KINEMATIC)
-        else:
-            box_body = pymunk.Body(body_type=pymunk.Body.DYNAMIC) 
-
+    def setup(self):
+        line1 = PymunkStaticLine((400,200),(100,300))
+        self.line_list.append(line1)
+        line2 = PymunkStaticLine((100,50),(50,100))
+        self.line_list.append(line2)
         
-        tmp_width = 寬 if 寬 is not None else width
-        if not random_flag:
-            tmp_width = tmp_width if tmp_width is not None else self.config.SIZE_WIDTH
-        else:
-            tmp_width = tmp_width if tmp_width is not None else randint(*self.config.RAMDOM_SIZE_RANGE)
-
-        if tmp_width <= 0: raise BoxException('新增方塊錯誤','寬(width)要大於0')
+        b = PymunkCircle()
+        b.body.position = (300,150)
+        joint = pymunk.PinJoint(b.body, line1.body, (0,0) , (0,0))
+        joint.distance = 150
+        global_space.add(joint)
+        self.ball_list.append(b)
         
-        tmp_height = 高 if 高 is not None else height
-        if not random_flag:
-            tmp_height = tmp_height if tmp_height is not None else self.config.SIZE_HEIGHT
-        else:
-            tmp_height = tmp_height if tmp_height is not None else randint(*self.config.RAMDOM_SIZE_RANGE)
-
-        if tmp_height <= 0: raise BoxException('新增方塊錯誤','高(height)要大於0')
-
-        box_shape = pymunk.Poly.create_box(box_body, (tmp_width, tmp_height) )
-
-        tmp_density = 密度 if 密度 is not None else density
-        if tmp_density is None:
-            tmp_density = self.config.DENSITY
-        box_shape.density = tmp_density
+        #arcade.schedule(self.add_circle, 2)
         
-        box_shape.friction = self.config.FRICTION
-        box_shape.elasticity = self.config.ELASTICITY
         
-        box_shape.color = color.random()     
+        arcade.schedule(self.handle_stdin, 0.5)
+        t = threading.Thread(target=self.stdin_thread)
+        t.daemon = True
+        t.start()
         
-
-
-        tmp_x = 位置x if 位置x is not None else position_x
-        if not random_flag:
-            tmp_x = tmp_x if tmp_x is not None else self.config.X
-        else:
-            tmp_x = tmp_x if tmp_x is not None else randint(*self.config.RANDOM_X_RANGE)
-
-        tmp_y = 位置y if 位置y is not None else position_y
-        if not random_flag:
-            tmp_y = tmp_y if tmp_y is not None else self.config.Y
-        else:
-            tmp_y = tmp_y if tmp_y is not None else randint(*self.config.RANDOM_Y_RANGE)
-
-        box_body.position = (tmp_x, tmp_y)
-
-        if not random_flag:
-            box_body.angle = 0
-        else:
-            box_body.angle = 3.1416 * 2 * random()
-
-        if not random_flag:
-            box_body.velocity = (0, 0)
-        else:
-            box_body.velocity = ( randint(*self.config.RANDOM_VELOCITY_RANGE),
-                                randint(*self.config.RANDOM_VELOCITY_RANGE) )           
-
-        self.space.add(box_body, box_shape)
-        return  BodyShapeWrapper(box_body, box_shape)
-
-    def 新增方塊(self, *args, **kwargs):
-        return self.add_box(*args, **kwargs)
-
-    def add_random_box(self, *args,  **kwargs):
-        kwargs['random_flag'] = True
-        return self.add_box(*args, **kwargs)                
-
-    def 新增隨機方塊(self, *args, **kwargs):
-        kwargs['random_flag'] = True
-        return self.add_box(*args, **kwargs) 
-
-
-
-    def make_borders(self):
-        self.make_one_border( (0,0), (self.config.WINDOW_WIDTH,0))
-        self.make_one_border( (0,self.config.WINDOW_HEIGHT), (self.config.WINDOW_WIDTH,self.config.WINDOW_HEIGHT))
-        self.make_one_border( (0,0), (0,self.config.WINDOW_HEIGHT))
-        self.make_one_border( (self.config.WINDOW_WIDTH,0), (self.config.WINDOW_WIDTH,self.config.WINDOW_HEIGHT))
-
-    def 產生邊界(self):
-        self.make_borders()
-
-    def make_floor(self):
-        start_pos = ( int(self.config.WINDOW_WIDTH * 0.1), 40)
-        end_pos = (int(self.config.WINDOW_WIDTH * 0.9), 40)
-        return self.make_one_border(start_pos, end_pos)
-
-    def 產生地面(self):
-        return self.make_floor()
-
-    def make_one_border(self, a, b):
-        wall_body = pymunk.Body(body_type=pymunk.Body.STATIC)
-        wall_shape = pymunk.Segment(wall_body, a,b,self.config.WALL_THICKNESS)
-        wall_shape.friction = self.config.FRICTION
-        wall_shape.elasticity = self.config.ELASTICITY
-        wall_body.position = 0, 0
-        self.space.add( wall_body,wall_shape)
-        return BodyShapeWrapper(wall_body, wall_shape)
     
     def on_draw(self):
-        self.window.clear()
-        self.space.debug_draw(options)
-        self.fps_display.draw()
-
+        arcade.start_render()
         
-    def engine_update(self, dt):
-        small_dt = dt / 4
-        for i in range(4):
-            self.space.step(small_dt)
-
-    def check_and_remove_out_of_gc_bound(self, dt):
-        #print(len(self.space.bodies), len(self.space.shapes))
-        for sh in self.space.shapes:
-            x = sh.body.position.x
-            y = sh.body.position.y
-            if x > self.config.RIGHT_GC_BOUND or x < self.config.LEFT_GC_BOUND or \
-               y > self.config.TOP_GC_BOUND or y < self.config.BOTTOM_GC_BOUND:
-                self.space.remove(sh.body, sh)
-
-    def check_event_handler_params(self):
-        
-        # 4 params for on_mouse_press
-        #pyglet example: def on_mouse_press(x, y, button, modifiers):
-        if hasattr(toplevel, "on_mouse_press"):
-            sig = signature(toplevel.on_mouse_press)
-            if len(sig.parameters) != 4 :
-                raise EventException('事件處理函式錯誤', ' def on_mouse_press()函式 需要有4個參數')     
-        
-        if hasattr(toplevel, "當滑鼠被按下"):
-            sig = signature(toplevel.當滑鼠被按下)
-            if len(sig.parameters) != 4 :
-                raise EventException('事件處理函式錯誤', ' def 當滑鼠被按下()函式 需要有4個參數')        
-
-        # 6 params for on_mouse_drag
-        #pyglet example: def on_mouse_drag(x, y, dx, dy, buttons, modifiers):
-        if hasattr(toplevel, "on_mouse_drag"):
-            sig = signature(toplevel.on_mouse_drag)
-            if len(sig.parameters) != 6 :
-                raise EventException('事件處理函式錯誤', ' def on_mouse_drag()函式 需要有6個參數')     
-        
-        if hasattr(toplevel, "當滑鼠被拖曳"):
-            sig = signature(toplevel.當滑鼠被拖曳)
-            if len(sig.parameters) != 6 :
-                raise EventException('事件處理函式錯誤', ' def 當滑鼠被拖曳()函式 需要有6個參數')
-
-        # 4 params for on_mouse_release
-        #pyglet example: def on_mouse_release(x, y, button, modifiers):
-        if hasattr(toplevel, "on_mouse_release"):
-            sig = signature(toplevel.on_mouse_release)
-            if len(sig.parameters) != 4 :
-                raise EventException('事件處理函式錯誤', ' def on_mouse_release()函式 需要有4個參數')     
-        
-        if hasattr(toplevel, "當滑鼠被放開"):
-            sig = signature(toplevel.當滑鼠被放開)
-            if len(sig.parameters) != 4 :
-                raise EventException('事件處理函式錯誤', ' def 當滑鼠被放開()函式 需要有4個參數')
-
-        # 2 params for on_key_press
-        #pyglet example: def on_key_press(symbol, modifiers):
-        if hasattr(toplevel, "on_key_press"):
-            sig = signature(toplevel.on_key_press)
-            if len(sig.parameters) != 2 :
-                raise EventException('事件處理函式錯誤', ' def on_key_press()函式 需要有2個參數')     
-        
-        if hasattr(toplevel, "當鍵盤被按下"):
-            sig = signature(toplevel.當鍵盤被按下)
-            if len(sig.parameters) != 2 :
-                raise EventException('事件處理函式錯誤', ' def 當鍵盤被按下()函式 需要有2個參數')
-
-        # 2 params for on_key_release
-        #pyglet example: def on_key_release(symbol, modifiers):
-        if hasattr(toplevel, "on_key_release"):
-            sig = signature(toplevel.on_key_release)
-            if len(sig.parameters) != 2 :
-                raise EventException('事件處理函式錯誤', ' def on_key_release()函式 需要有2個參數')     
-        
-        if hasattr(toplevel, "當鍵盤被放開"):
-            sig = signature(toplevel.當鍵盤被放開)
-            if len(sig.parameters) != 2 :
-                raise EventException('事件處理函式錯誤', ' def 當鍵盤被放開()函式 需要有2個參數')
-
-    def run(self):
-
-        #self.check_event_handler_params()
-
-        self.window = pyglet.window.Window(self.config.WINDOW_WIDTH,
-                                            self.config.WINDOW_HEIGHT, 
-                                            resizable=False)        
-        
-        self.on_draw = self.window.event(self.on_draw)
-
-        self.fps_display = pyglet.window.FPSDisplay(window=self.window)
-        
+        for b in self.ball_list:
+            b.draw()
+            
+        for li in self.line_list:
+            #print('line: ', li.shape_element.center_x, li.shape_element.center_y)
+            li.draw()
     
-        if hasattr(toplevel, "當滑鼠被按下"):
-            toplevel.當滑鼠被按下.__name__ = "on_mouse_press"
-            toplevel.當滑鼠被按下 = self.window.event(toplevel.當滑鼠被按下)
-        elif hasattr(toplevel, "on_mouse_press"):
-            toplevel.on_mouse_press = self.window.event(toplevel.on_mouse_press)
+    def on_update(self, dt):
+        global_space.step(dt)
+    
+    def on_key_press(self, symbol, mod):
+        if symbol == arcade.key.ESCAPE:
+            self.close()
+            
+    def add_circle(self):
+        for i in range(5):        
+            p = PymunkCircle()
+            self.ball_list.append(p)
 
-        if hasattr(toplevel, "當滑鼠被拖曳"):
-            toplevel.當滑鼠被拖曳.__name__ = "on_mouse_drag"
-            toplevel.當滑鼠被拖曳 = self.window.event(toplevel.當滑鼠被拖曳)
-        elif hasattr(toplevel, "on_mouse_drag"):
-            toplevel.on_mouse_drag = self.window.event(toplevel.on_mouse_drag)
+    def stdin_thread(self):
+        
+        print('begin ')
+        print('\n')
+        print('4t>>> ', end='')
+        while True:
+             try:
+                line = sys.stdin.readline()
+                self.cmd_queue.put(line)
+                time.sleep(0.5)
+             except RuntimeError as e :
+                 print('請按上方執行或STOP按鈕')
+                 return
 
-        if hasattr(toplevel, "當滑鼠被放開"):
-            toplevel.當滑鼠被放開.__name__ = "on_mouse_release"
-            toplevel.當滑鼠被放開 = self.window.event(toplevel.當滑鼠被放開)
-        elif hasattr(toplevel, "on_mouse_release"):
-            toplevel.on_mouse_release = self.window.event(toplevel.on_mouse_release)
+           
 
-        if hasattr(toplevel, "當鍵盤被按下"):
-            toplevel.當鍵盤被按下.__name__ = "on_key_press"
-            toplevel.當鍵盤被按下 = self.window.event(toplevel.當鍵盤被按下)
-        elif hasattr(toplevel, "on_key_press"):
-            toplevel.on_key_press = self.window.event(toplevel.on_key_press)            
+    def handle_stdin(self, dt):
+        try:
+            line = self.cmd_queue.get(block=False)
+        except Empty:
+            return
+        
+        try:
+            if '=' in line:
+                exec(line)
+            else:
+                r = eval(line)
+                if r:
+                    print(r)
+            #print('Got: ', line[:-1], '---')
+        
+        except Exception as e:
+            print(e)
+        finally:
+            print('4t>>> ', end='') 
+        
 
-        if hasattr(toplevel, "當鍵盤被放開"):
-            toplevel.當鍵盤被放開.__name__ = "on_key_release"
-            toplevel.當鍵盤被放開 = self.window.event(toplevel.當鍵盤被放開)
-        elif hasattr(toplevel, "on_key_release"):
-            toplevel.on_key_release = self.window.event(toplevel.on_key_release)            
-
-
-
-        if hasattr(toplevel, "引擎定期更新"):
-            pyglet.clock.schedule_interval(toplevel.引擎定期更新, self.config.DT)
-        elif hasattr(toplevel,"engine_update"):
-            pyglet.clock.schedule_interval(toplevel.update, self.config.DT)
-        else:
-            pyglet.clock.schedule_interval(self.engine_update, self.config.DT)
-
-        if hasattr(toplevel, "更新"):
-            pyglet.clock.schedule_interval(toplevel.更新, self.config.DT)
-        elif hasattr(toplevel,"update"):
-            pyglet.clock.schedule_interval(toplevel.update, self.config.DT)
-
-        pyglet.clock.schedule_interval(self.check_and_remove_out_of_gc_bound, 2)
-
-
-        pyglet.app.run()
-
-    def 開始模擬(self):
-        self.run()
-
-物理引擎 = Engine
-
-
+if __name__ == '__main__' :
+    win = PymunkGame()
+    win.setup()
+    arcade.run()
+    
