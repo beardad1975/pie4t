@@ -1,14 +1,28 @@
 import random
 import math
-import msvcrt
+#import msvcrt
 import sys
 import time
 from queue import Queue, Empty
 import threading
+import code
 
 import arcade
 
 import pymunk
+
+__all__ = ['PymunkCircle', 'PymunkStaticLine', 'PymunkGame', 'arcade',
+            'add_circle', 'run','mainloop',
+            ]
+
+####
+is_initialized = False
+#is_batch_mode = False
+is_game_running = False
+game_win = None
+
+
+#####
 
 WINDOW_WIDTH = 600
 WINDOW_HEIGHT = 600
@@ -98,6 +112,8 @@ class PymunkGame(arcade.Window):
         self.line_list = []
 
         self.cmd_queue = Queue()
+        self.console = code.InteractiveConsole(locals=main_dict,filename='輸入')
+        self.is_completed = True
         
     def setup(self):
         line1 = PymunkStaticLine((400,200),(100,300))
@@ -115,11 +131,16 @@ class PymunkGame(arcade.Window):
         #arcade.schedule(self.add_circle, 2)
         
         
+        
+
+
+    def run(self):
         arcade.schedule(self.handle_stdin, 0.5)
         t = threading.Thread(target=self.stdin_thread)
         t.daemon = True
         t.start()
-        
+
+        arcade.run()    
     
     def on_draw(self):
         arcade.start_render()
@@ -145,9 +166,9 @@ class PymunkGame(arcade.Window):
 
     def stdin_thread(self):
         
-        print('begin ')
+        print('模擬開始 ')
         print('\n')
-        print('4t>>> ', end='')
+        print('>>> ', end='')
         while True:
              try:
                 line = sys.stdin.readline()
@@ -164,21 +185,82 @@ class PymunkGame(arcade.Window):
             line = self.cmd_queue.get(block=False)
         except Empty:
             return
+
+        # strip enter  or  leading white space
+        line = line.rstrip()
+        if self.is_completed: line = line.lstrip()
+
+
+        if self.console.push(line):
+            # not complele
+            print('... ', end='')
+            self.is_completed = False
+        else:
+            # complete
+            print('>>> ', end='')
+            self.is_completed = True
+
+        # try:
+        #     if '=' in line:
+        #         #exec(line)
+        #         exec(line, main_dict)
+        #     else:
+        #         #r = eval(line)
+        #         r = eval(line, main_dict)
+        #         if r:
+        #             print(r)
+        #     #print('Got: ', line[:-1], '---')
         
-        try:
-            if '=' in line:
-                exec(line)
-            else:
-                r = eval(line)
-                if r:
-                    print(r)
-            #print('Got: ', line[:-1], '---')
-        
-        except Exception as e:
-            print(e)
-        finally:
-            print('4t>>> ', end='') 
-        
+        # except Exception as e:
+        #     print(e)
+        # finally:
+        #     print('4t>>> ', end='') 
+
+
+
+
+def add_circle():
+    pass
+
+def mainloop():
+    if not __main__.pie4t_module.is_game_running:
+        __main__.pie4t_module.is_game_running = True
+        game_win.setup()
+        game_win.run()
+    #game_win.run()
+
+run = mainloop
+
+def module_init():
+    # module reference
+    __main__.pie4t_module = sys.modules['pie4t']
+
+    ## check batch mode
+    # had __file__ and import pie4t in files
+    # if hasattr(__main__ , '__file__') and __main__.__file__.endswith('py'):
+    #     #print('has __file__')
+    #     try:
+    #         with open(__main__.__file__, encoding='utf8') as f:
+    #             lines = f.readlines()
+    #             for i in lines:
+    #                 if 'import' in i and 'pie4t' in i:
+    #                     __main__.pie4t_module.is_batch_mode = True
+                        
+    #                     print(__file__, ': is batch mode,')
+    #                     break
+    #     except FileNotFoundError:
+    #         pass
+
+    # create game win
+    __main__.pie4t_module.game_win = PymunkGame()
+    __main__.pie4t_module.is_initialized = True
+
+### module init
+import __main__
+from __main__ import __dict__ as main_dict
+module_init()
+
+
 
 if __name__ == '__main__' :
     win = PymunkGame()
