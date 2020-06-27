@@ -2,10 +2,14 @@
 from . import common
 from .engine import PhysicsEngine
 
+物理引擎 = PhysicsEngine
 
 __all__ = [ 
-            'add_circle', '新增圓球','object_num','物件數量',
+            'add_circle', '新增圓球',
             'simulate','開始模擬','mainloop','主迴圈',
+
+
+
             ]
 
 
@@ -15,18 +19,13 @@ __all__ = [
 def add_circle():
     if not common.is_engine_created:
         PhysicsEngine()
-    common.stage.add_circle()
+    return common.stage.add_circle()
 
 新增圓球 = add_circle
 
 
 
-def object_num():
-    if not common.is_engine_created:
-        PhysicsEngine()
-    return common.stage.object_num
 
-物件數量 = object_num
 
 def mainloop():
     if not common.is_engine_created:
