@@ -1,14 +1,23 @@
 
 ### default
 
-DEFAULT_WIDTH = 600
-DEFAULT_HEIGHT = 600
-DEFAULT_TITLE = '遊戲物理引擎'
+WIDTH = 600
+HEIGHT = 600
+TITLE = '遊戲物理引擎'
 
-DEFAULT_GRAVITY = (0, -500)
-DEFAULT_DENSITY = 1
-DEFAULT_FRICTION = 0.5
-DEFAULT_ELASTICITY = 0.95
+UPDATE_DT = 1/50
+
+QUARTER_DT = UPDATE_DT / 4
+
+
+GRAVITY = (0, -900)
+DENSITY = 1
+FRICTION = 0.4
+ELASTICITY = 0.98
+
+
+
+
 
 ### common var
 is_engine_created = False

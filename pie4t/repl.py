@@ -18,7 +18,7 @@ class Repl:
 
         self.console = code.InteractiveConsole(locals=main_dict,filename='輸入')   
         
-        arcade.schedule(self.handle_repl, 0.5)
+        arcade.schedule(self.handle_repl, 0.2)
         t = threading.Thread(target=self.readline_thread)
         t.daemon = True
         t.start()  
@@ -31,7 +31,7 @@ class Repl:
              try:
                 line = sys.stdin.readline()
                 self.cmd_queue.put(line)
-                time.sleep(0.5)
+                time.sleep(0.2)
              except RuntimeError as e :
                  print('請按上方執行或STOP按鈕')
                  return

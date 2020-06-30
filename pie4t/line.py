@@ -14,8 +14,8 @@ class StaticLine:
         self.phy_body.position = a
         a_b_delta = (b[0] - a[0], b[1]-a[1])
         self.phy_shape = pymunk.Segment(self.phy_body,(0,0), a_b_delta, thickness//2)
-        self.phy_shape.friction = common.DEFAULT_FRICTION
-        self.phy_shape.elasticity = common.DEFAULT_ELASTICITY
+        self.phy_shape.friction = common.FRICTION
+        self.phy_shape.elasticity = common.ELASTICITY
         common.stage.space.add(self.phy_shape)
         
         if common.stage.is_engine_running:

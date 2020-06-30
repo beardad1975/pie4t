@@ -1,3 +1,6 @@
+from inspect import signature
+import sys
+
 import arcade
 import pymunk
 import pyperclip
@@ -8,25 +11,30 @@ from .repl import Repl
 from .circle import Circle
 from .line import StaticLine
 
+import __main__
 
 class PhysicsEngine(arcade.Window, Repl):
     
-    def __init__(self, width=common.DEFAULT_WIDTH, 
-                       height=common.DEFAULT_HEIGHT, 
-                       title=common.DEFAULT_TITLE):
+    def __init__(self, width=common.WIDTH, 
+                       height=common.HEIGHT, 
+                       title=common.TITLE):
         # check module level default physics engine
         
         common.stage = self
         common.物理舞台 = self        
         common.is_engine_created = True
-        import __main__
         __main__.stage = self
         __main__.物理舞台 = self
 
+
+
         self.win_width = width
         self.win_height = height
+
+        __main__.中央座標 = (width//2, height//2)
+
         self.title = title
-        self.set_update_rate(1/60)
+        self.set_update_rate(common.UPDATE_DT)
         self.circle_list = []
         self.line_list = []
         self.is_engine_running = False
@@ -38,9 +46,14 @@ class PhysicsEngine(arcade.Window, Repl):
 
         # pymunk space
         self.space = pymunk.Space()
-        self.space.gravity = common.DEFAULT_GRAVITY
+        self.space.gravity = common.GRAVITY
+        self.sleep_time_threshold = 1
+        
 
-        print("建立物理舞台")
+        # custom event handler ref
+        self.user_mouse_press_handler = lambda x, y, button, modifiers: print('default mouse press')
+
+        print(f"建立物理舞台(寬{self.win_width}x高{self.win_height})")
 
     def lazy_setup(self):
         super().__init__(self.win_width, self.win_height, self.title)
@@ -55,7 +68,7 @@ class PhysicsEngine(arcade.Window, Repl):
 
 
     def setup_wall_around(self):
-        thick = 8
+        thick = 10
         self.add_line( (thick,25), (self.win_width-thick,25), thick)
         self.add_line( (thick,self.win_height-thick), (self.win_width-thick,self.win_height-thick),thick)
         self.add_line( (thick,25), (thick,self.win_height-thick),thick)
@@ -79,12 +92,38 @@ class PhysicsEngine(arcade.Window, Repl):
     def simulate(self):
         self.setup_wall_around()
         self.lazy_setup()
+        self.collect_user_event_handlers()
         self.start_repl()
 
         
 
         self.is_engine_running = True
         arcade.run()    
+
+
+    def collect_user_event_handlers(self):
+        if hasattr(__main__, 'on_mouse_press'):
+            # check number of parameters
+            sig = signature(__main__.on_mouse_press)
+            if len(sig.parameters) == 4:
+                 # parameters: x, y, button, modifiers
+                self.user_mouse_press_handler = __main__.on_mouse_ress
+                print( 'handler registed: on_mouse_press' )
+            else:
+                print('handler error: on_mouse_press needs  4 parameters')
+                sys.exit()
+
+        if hasattr(__main__, '按下滑鼠時'):
+            # check number of parameters
+            sig = signature(__main__.按下滑鼠時)
+            if len(sig.parameters) == 2:
+                 # parameters: x, y, button, modifiers
+                self.user_mouse_press_handler = __main__.按下滑鼠時
+                print( '登錄處理函式：按下滑鼠時' )
+            else:
+                print('處理函式錯誤: 按下滑鼠時 需要2個參數')
+                sys.exit()
+
 
     ### event
 
@@ -106,7 +145,11 @@ class PhysicsEngine(arcade.Window, Repl):
         arcade.draw_text(text, 0, 0, arcade.csscolor.WHITE, 14, font_name=self.font)
     
     def on_update(self, dt):
-        self.space.step(dt)
+        # physics engine 
+        self.space.step(common.QUARTER_DT)
+        self.space.step(common.QUARTER_DT)
+        self.space.step(common.QUARTER_DT)
+        self.space.step(common.QUARTER_DT)
     
     def on_key_press(self, symbol, mod):
         if symbol == arcade.key.ESCAPE:
@@ -117,6 +160,13 @@ class PhysicsEngine(arcade.Window, Repl):
             cor_text = f'({self.status_x},{self.status_y})'
             pyperclip.copy(cor_text)
             print('複製座標 '+ cor_text)
+        elif button == arcade.MOUSE_BUTTON_LEFT:
+            # call user define handler
+            self.user_mouse_press_handler(x, y)
+        
+
+        
+        
 
     def on_mouse_motion(self, x, y, dx, dy):
         
@@ -131,8 +181,8 @@ class PhysicsEngine(arcade.Window, Repl):
         line = StaticLine(a,b,thickness)
         self.line_list.append(line)
 
-    def add_circle(self):
-        c = Circle()
+    def 新增圓球(self, *args, **kwargs):
+        c = Circle(*args, **kwargs)
         self.circle_list.append(c)
         return c
 
@@ -162,3 +212,4 @@ class PhysicsEngine(arcade.Window, Repl):
     def 物件數量(self):
         num = len(self.circle_list) 
         return num
+
