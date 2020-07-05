@@ -3,6 +3,7 @@ import arcade
 
 from . import common
 
+
 class StaticLine:
     def __init__(self, a, b, thickness=4):
         self.is_lazy_setup = False
@@ -14,8 +15,9 @@ class StaticLine:
         self.phy_body.position = a
         a_b_delta = (b[0] - a[0], b[1]-a[1])
         self.phy_shape = pymunk.Segment(self.phy_body,(0,0), a_b_delta, thickness//2)
-        self.phy_shape.friction = common.FRICTION
-        self.phy_shape.elasticity = common.ELASTICITY
+        self.phy_shape.friction = 1
+        self.phy_shape.elasticity = 1
+        self.phy_shape.collision_type = common.COLLITYPE_LINE
         common.stage.space.add(self.phy_shape)
         
         if common.stage.is_engine_running:

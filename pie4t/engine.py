@@ -7,6 +7,8 @@ import pyperclip
 import pyglet
 
 from . import common
+from .common import COLLITYPE_DEFAULT, COLLITYPE_HOLE 
+
 from .repl import Repl
 from .circle import Circle
 from .line import StaticLine
@@ -49,11 +51,50 @@ class PhysicsEngine(arcade.Window, Repl):
         self.space.gravity = common.GRAVITY
         self.sleep_time_threshold = 1
         
+        hole_handler = self.space.add_collision_handler(COLLITYPE_DEFAULT,
+                COLLITYPE_HOLE)
+
+
+
+        hole_handler.begin = self.hole_begin_callback
+        hole_handler.pre_solve = self.hole_pre_solve_callback
+        hole_handler.post_solve = self.hole_post_solve_callback
+        hole_handler.separate = self.hole_separate_callback
+
 
         # custom event handler ref
         self.user_mouse_press_handler = lambda x, y: print('default mouse press')
 
         print(f"建立物理舞台(寬{self.win_width}x高{self.win_height})")
+
+    def hole_begin_callback(self, arbiter, space, data):
+        #print('begin res ', arbiter.restitution)
+
+        #print('begin ', end='')
+        #shape, _ = arbiter.shapes
+        #self.移除(shape.obj)
+        #return False
+        return True
+
+    def hole_pre_solve_callback(self, arbiter, space, data):
+        #arbiter.restitution = 1
+        print('pre solve sur v ', arbiter.surface_velocity)
+        #print('begin friction', arbiter.is_first_contact)
+        #arbiter.friction = 0
+        #print('pre_solve ', end='')
+
+        #return False
+        return True
+
+    def hole_post_solve_callback(self, arbiter, space, data):
+        #print('post_solve ', end='')
+        #return True
+        pass
+
+    def hole_separate_callback(self, arbiter, space, data):
+        #print('separate removal ', arbiter.is_removal)
+        #return True
+        pass
 
     def lazy_setup(self):
         super().__init__(self.win_width, self.win_height, self.title)
@@ -176,7 +217,15 @@ class PhysicsEngine(arcade.Window, Repl):
         self.space.step(common.QUARTER_DT)
         self.space.step(common.QUARTER_DT)
         self.space.step(common.QUARTER_DT)
-    
+
+        # step_dt = 1/200.
+        # x = 0
+        # while x < dt:
+            
+        #     x += step_dt
+        #     self.space.step(step_dt)
+
+
     def on_key_press(self, symbol, mod):
         if symbol == arcade.key.ESCAPE:
             self.close()
@@ -211,6 +260,15 @@ class PhysicsEngine(arcade.Window, Repl):
         c = Circle(*args, **kwargs)
         self.circle_list.append(c)
         return c
+
+    def 移除(self, obj):
+        # remove shape and body from space
+        self.space.remove(obj.phy_shape)
+        self.space.remove(obj.phy_body)
+        if isinstance(obj, Circle):
+            self.circle_list.remove(obj)
+
+
 
     ### property
     @property
