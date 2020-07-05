@@ -51,7 +51,7 @@ class PhysicsEngine(arcade.Window, Repl):
         
 
         # custom event handler ref
-        self.user_mouse_press_handler = lambda x, y, button, modifiers: print('default mouse press')
+        self.user_mouse_press_handler = lambda x, y: print('default mouse press')
 
         print(f"建立物理舞台(寬{self.win_width}x高{self.win_height})")
 
@@ -65,6 +65,31 @@ class PhysicsEngine(arcade.Window, Repl):
         for i in self.line_list:
             i.lazy_setup()
 
+    def setup_pinball_layout(self):
+        
+        self.add_line((488,696),(473,754), 3)
+        self.add_line((473,754), (437,775), 3)
+        self.add_line((437,775), (390,790), 3)
+
+        self.add_line((426,30),(426,660),3)
+
+        # 隔板
+        for i in range(6):
+            self.add_line((60+i*60,120),(60+i*60,220),3)
+
+        
+
+        
+        self.add_line((11,70),(358,47),3)
+        # self.add_line()
+
+        # self.add_line()
+
+        # self.add_line()
+
+        # self.add_line()
+
+        # self.add_line()
 
 
     def setup_wall_around(self):
@@ -91,6 +116,7 @@ class PhysicsEngine(arcade.Window, Repl):
         
     def simulate(self):
         self.setup_wall_around()
+        #self.setup_pinball_layout()
         self.lazy_setup()
         self.collect_user_event_handlers()
         self.start_repl()
@@ -192,16 +218,16 @@ class PhysicsEngine(arcade.Window, Repl):
         return self.space.gravity
 
     @gravity.setter
-    def gravity(self, g):
-        self.space.gravity = g 
+    def gravity(self, value):
+        self.space.gravity = value 
 
     @property
     def 重力(self):
         return self.space.gravity
 
     @重力.setter
-    def 重力(self, g):
-        self.space.gravity = g 
+    def 重力(self, value):
+        self.space.gravity = value 
 
     @property
     def object_num(self):
@@ -209,7 +235,8 @@ class PhysicsEngine(arcade.Window, Repl):
         return num
 
     @property
-    def 物件數量(self):
+    def 物體數量(self):
         num = len(self.circle_list) 
         return num
 
+  

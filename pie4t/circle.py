@@ -17,9 +17,11 @@ class Circle:
     def __init__(self, 半徑=None):
         # pymunk part
         #self.density = 1
-        self.is_lazy_setup = False
+        self.lazy_setup_done = False
 
         self.phy_body = pymunk.Body(body_type=pymunk.Body.DYNAMIC)
+
+      
 
         if 半徑 is not None:
             self.radius = 半徑
@@ -49,26 +51,50 @@ class Circle:
         
         if common.stage.is_engine_running:
             self.lazy_setup()
-            self.is_lazy_setup = True
+            self.lazy_setup_done = True
 
     def lazy_setup(self):
         ### arcade part
-        if not self.is_lazy_setup:
+        if not self.lazy_setup_done:
             print('do circle lazy setup')
-            self.shape_element = arcade.ShapeElementList()
-            # circle
-            ball_color = random.choice(BALL_COLORS)
+            self.ball_color = random.choice(BALL_COLORS)
+
+            #  two shape element for different body type           
+            self.dynamic_shape_element = arcade.ShapeElementList()
+            self.kinematic_shape_element = arcade.ShapeElementList()  
+
+            self.make_dynamic_shape()
+            self.make_kinematic_shape()
+
+            if self.物理反應 :
+                self.current_shape_element = self.dynamic_shape_element
+            else :
+                self.current_shape_element = self.kinematic_shape_element
+            
+            
+    def make_dynamic_shape(self):
+            # dynamic  circle
+
             #s = arcade.create_ellipse_filled(0, 0, self.radius, self.radius, ball_color)
             s = arcade.create_ellipse_filled_with_colors(0, 0, self.radius, self.radius,
-                                                ball_color, arcade.color.UNMELLOW_YELLOW)
-            self.shape_element.append(s)
-            
+                                        self.ball_color, arcade.color.UNMELLOW_YELLOW)
+            self.dynamic_shape_element.append(s)
             # dot
-            #s = arcade.create_ellipse_filled(self.radius-6 , 0, 2, 2, arcade.color.WHITE)
-            #self.shape_element.append(s)
             s_radius = int(self.radius * 0.15)
             s = arcade.create_ellipse_filled(self.radius-s_radius*2 , 0, s_radius, s_radius, arcade.color.WHITE)
-            self.shape_element.append(s)
+            self.dynamic_shape_element.append(s)
+
+    def make_kinematic_shape(self):
+            # dynamic  circle
+
+            #s = arcade.create_ellipse_filled(0, 0, self.radius, self.radius, ball_color)
+            s = arcade.create_ellipse_filled_with_colors(0, 0, self.radius, self.radius,
+                                        arcade.color.GRAY, arcade.color.UNMELLOW_YELLOW)
+            self.kinematic_shape_element.append(s)
+            # dot
+            s_radius = int(self.radius * 0.15)
+            s = arcade.create_ellipse_filled(self.radius-s_radius*2 , 0, s_radius, s_radius, arcade.color.WHITE)
+            self.kinematic_shape_element.append(s)
 
     def __repr__(self):
         r = round(self.phy_shape.radius, 1)
@@ -81,10 +107,10 @@ class Circle:
 
 
     def draw(self):
-        self.shape_element.center_x = self.phy_body.position.x
-        self.shape_element.center_y = self.phy_body.position.y
-        self.shape_element.angle = math.degrees(self.phy_body.angle)
-        self.shape_element.draw()
+        self.current_shape_element.center_x = self.phy_body.position.x
+        self.current_shape_element.center_y = self.phy_body.position.y
+        self.current_shape_element.angle = math.degrees(self.phy_body.angle)
+        self.current_shape_element.draw()
 
     ### circle property
     @property
@@ -149,3 +175,22 @@ class Circle:
         else:
             self.phy_shape.elasticity = value    
 
+    @property
+    def 物理反應(self):
+        if self.phy_body.body_type == pymunk.Body.DYNAMIC:
+            return True
+        elif self.phy_body.body_type == pymunk.Body.KINEMATIC:
+            return False
+
+    @物理反應.setter
+    def 物理反應(self, g):
+        if g is True and self.phy_body.body_type ==  pymunk.Body.KINEMATIC:
+            # change type to dynamic
+            self.phy_body.body_type = pymunk.Body.DYNAMIC
+            if common.stage.is_engine_running:
+                self.current_shape_element = self.dynamic_shape_element
+        elif  g is False and self.phy_body.body_type ==  pymunk.Body.DYNAMIC:
+            # chang type to kinematic
+            self.phy_body.body_type = pymunk.Body.KINEMATIC
+            if common.stage.is_engine_running:
+                self.current_shape_element = self.kinematic_shape_element
