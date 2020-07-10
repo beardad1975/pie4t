@@ -17,8 +17,8 @@ import __main__
 
 class PhysicsEngine(arcade.Window, Repl):
     
-    def __init__(self, width=common.WIDTH, 
-                       height=common.HEIGHT, 
+    def __init__(self, 寬=common.WIDTH, 
+                       高=common.HEIGHT, 
                        title=common.TITLE):
         # check module level default physics engine
         
@@ -28,15 +28,16 @@ class PhysicsEngine(arcade.Window, Repl):
         __main__.stage = self
         __main__.物理舞台 = self
 
+        
 
+        self.win_width = 寬 if 寬 > common.MIN_WIDTH else common.MIN_WIDTH
+        self.win_height = 高 if 高 > common.MIN_HEIGHT else common.MIN_HEIGHT
 
-        self.win_width = width
-        self.win_height = height
-
-        __main__.中央座標 = (width//2, height//2)
+        print('stage size: ', self.win_width, self.win_height)
+        __main__.中央座標 = (self.win_width, self.win_height//2)
 
         self.title = title
-        self.set_update_rate(common.UPDATE_DT)
+        self.set_update_rate(common.DT_UPDATE)
         self.circle_list = []
         self.line_list = []
         self.is_engine_running = False
@@ -99,7 +100,7 @@ class PhysicsEngine(arcade.Window, Repl):
     def lazy_setup(self):
         super().__init__(self.win_width, self.win_height, self.title)
 
-        print('do engine lazy setup')
+        #print('do engine lazy setup')
         for i in self.circle_list:
             i.lazy_setup()
         
@@ -135,10 +136,10 @@ class PhysicsEngine(arcade.Window, Repl):
 
     def setup_wall_around(self):
         thick = 10
-        self.add_line( (thick,25), (self.win_width-thick,25), thick)
-        self.add_line( (thick,self.win_height-thick), (self.win_width-thick,self.win_height-thick),thick)
-        self.add_line( (thick,25), (thick,self.win_height-thick),thick)
-        self.add_line( (self.win_width-thick,25), (self.win_width-thick,self.win_height-thick),thick)
+        #self.add_line( (thick,25), (self.win_width-thick,25), thick)
+        #self.add_line( (thick,self.win_height-thick), (self.win_width-thick,self.win_height-thick),thick)
+        #self.add_line( (thick,25), (thick,self.win_height-thick),thick)
+        #self.add_line( (self.win_width-thick,25), (self.win_width-thick,self.win_height-thick),thick)
 
         # pass
         # line1 = StaticLine((400,200),(100,300))
@@ -213,10 +214,10 @@ class PhysicsEngine(arcade.Window, Repl):
     
     def on_update(self, dt):
         # physics engine 
-        self.space.step(common.QUARTER_DT)
-        self.space.step(common.QUARTER_DT)
-        self.space.step(common.QUARTER_DT)
-        self.space.step(common.QUARTER_DT)
+        #print('dt:', dt)
+        for i in range(common.DT_SPLIT_NUM):
+            self.space.step(common.DT_SPLIT)
+
 
         # step_dt = 1/200.
         # x = 0

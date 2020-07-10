@@ -2,6 +2,7 @@ import random
 import math
 
 import pymunk
+from pymunk.vec2d import Vec2d
 import arcade
 
 from . import common
@@ -20,7 +21,8 @@ class Circle:
         self.lazy_setup_done = False
 
         self.phy_body = pymunk.Body(body_type=pymunk.Body.DYNAMIC)
-
+        self.phy_body.velocity_func = self.limit_velocity
+        self.phy_body.position_func = self.limit_position
       
 
         if 半徑 is not None:
@@ -35,8 +37,12 @@ class Circle:
         # else:
         #     x = random.randint(120, 380)
         #     self.phy_body.position = x, 550
-        x = random.randint(120, 380)
-        self.phy_body.position = x, 550
+
+        win_width = common.stage.win_width
+        win_height = common.stage.win_height
+        x = random.randint(int(win_width*0.25), int(win_width*0.75))
+        y = random.randint(int(win_height*0.7), int(win_height*0.9))
+        self.phy_body.position = x , y
 
         self.phy_shape.density = common.DENSITY
         self.phy_shape.friction = common.FRICTION
@@ -55,10 +61,57 @@ class Circle:
             self.lazy_setup()
             self.lazy_setup_done = True
 
+    def limit_velocity(self, body, gravity, damping, dt):
+        speeding = False
+        l = body.velocity.length
+        if l > common.VELOCITY_LIMIT:
+            #print('found large velocity :', body.velocity)
+            scale = common.VELOCITY_LIMIT / l
+            body.velocity = body.velocity * scale
+            speeding = True
+            #print('fix to :', body.velocity)
+
+        if not speeding :
+            pymunk.Body.update_velocity(body, gravity, damping, dt)
+        else:# speeding , no gravity
+            pymunk.Body.update_velocity(body, (0,0), damping, dt)
+
+
+    def limit_position(self, body, dt):
+        # remove below lower bound
+        pymunk.Body.update_position(body, dt)
+        #print(body.position)
+        x = body.position.x
+        y = body.position.y
+        if y < common.POSITION_Y_MIN :
+            #print('exceed y min')
+            #body.position = Vec2d(x, common.POSITION_Y_MAX)
+            common.stage.移除(self)
+            print('remove: ', self)
+        elif y > common.POSITION_Y_MAX:
+            #body.position = Vec2d(x, common.POSITION_Y_MIN )
+            common.stage.移除(self)
+            print('remove: ', self)
+        elif x < common.POSITION_X_MIN :
+            #print('exceed y min')
+            #body.position = Vec2d(common.POSITION_X_MAX, y )
+            common.stage.移除(self)
+            print('remove: ', self)
+        elif x > common.POSITION_X_MAX:
+            #body.position = Vec2d(common.POSITION_X_MIN, y ) 
+            common.stage.移除(self)
+            print('remove: ', self)       
+
+            #print('exceed y max')
+            #print(body.position)
+            #common.stage.移除(self)
+            #print('remove: ', self)
+
+
     def lazy_setup(self):
         ### arcade part
         if not self.lazy_setup_done:
-            print('do circle lazy setup')
+            #print('do circle lazy setup')
             self.ball_color = random.choice(BALL_COLORS)
 
             #  two shape element for different body type           
@@ -114,6 +167,14 @@ class Circle:
         self.current_shape_element.angle = math.degrees(self.phy_body.angle)
         self.current_shape_element.draw()
 
+
+    def 施加力量(self, force):
+        self.phy_body.apply_force_at_local_point(force, (0,0))
+
+    def 施加衝量(self, impulse):
+        self.phy_body.apply_impulse_at_local_point(impulse, (0,0))
+
+
     ### circle property
     @property
     def 半徑(self):
@@ -154,7 +215,32 @@ class Circle:
     @位置.setter
     def 位置(self, value):
         self.phy_body.position = value
-    
+
+    @property
+    def 速度(self):
+        return self.phy_body.velocity
+
+    @速度.setter
+    def 速度(self, value):
+        self.phy_body.velocity = value
+
+    @property
+    def 角度(self):
+        return math.degrees(self.phy_body.angle)
+
+    @角度.setter
+    def 角度(self, value):
+        self.phy_body.angle = math.radians(value)
+
+    @property
+    def 角速度(self):
+        return math.degrees(self.phy_body.angular_velocity)
+
+    @角速度.setter
+    def 角速度(self, value):
+        self.phy_body.angular_velocity = math.radians(value)
+
+
     @property
     def 摩擦(self):
         return self.phy_shape.friction
@@ -196,3 +282,4 @@ class Circle:
             self.phy_body.body_type = pymunk.Body.KINEMATIC
             if common.stage.is_engine_running:
                 self.current_shape_element = self.kinematic_shape_element
+
