@@ -12,7 +12,7 @@ from .common import COLLITYPE_DEFAULT, COLLITYPE_HOLE
 from .repl import Repl
 from .circle import Circle
 from .segment import Segment
-from .assist import DotMark
+from .assist import DotMark, SegmentAssist
 
 import __main__
 
@@ -69,6 +69,7 @@ class PhysicsEngine(arcade.Window, Repl):
 
         # assist
         self.dot_mark = DotMark()
+        self.seg_assist = SegmentAssist()
 
         hole_handler = self.space.add_collision_handler(COLLITYPE_DEFAULT,
                 COLLITYPE_HOLE)
@@ -143,7 +144,7 @@ class PhysicsEngine(arcade.Window, Repl):
 
         # assist 
         self.dot_mark.lazy_setup()
-
+        self.seg_assist.lazy_setup()
 
 
     def setup_pinball_layout(self):
@@ -196,7 +197,7 @@ class PhysicsEngine(arcade.Window, Repl):
         #arcade.schedule(self.add_circle, 2)
         
     def simulate(self):
-        self.setup_wall_around()
+        #self.setup_wall_around()
         #self.setup_pinball_layout()
         self.lazy_setup()
         self.collect_user_event_handlers()
@@ -247,7 +248,7 @@ class PhysicsEngine(arcade.Window, Repl):
 
         # draw assist
         self.dot_mark.draw()
-
+        self.seg_assist.draw()
         # draw status line
         #gx = int(self.space.gravity.x)
         #gy = int(self.space.gravity.y)
@@ -275,31 +276,48 @@ class PhysicsEngine(arcade.Window, Repl):
         if symbol == arcade.key.ESCAPE:
             self.close()
 
+    def on_key_release(self, symbol, mod):
+        if symbol in (arcade.key.LCTRL, arcade.key.RCTRL):
+            #print('ctrl released')
+            self.seg_assist.cancel_first()
+
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_RIGHT:
-            #mx = self.info['mouse_x']
-            #my = self.info['mouse_y']
-            cor_text = f'[{x},{y}]'
-            pyperclip.copy(cor_text)
-            print('複製座標 '+ cor_text)            
-                      
-            self.dot_mark.update_pos(x, y)
-            
+            if modifiers & arcade.key.MOD_CTRL:
+                if not self.seg_assist.enabled:
+                    # do frist point
+                    self.seg_assist.click_first(x, y)
+                    #print('click first')
+                else: # do second point
+                    self.seg_assist.click_second(x, y)
+                    fx = self.seg_assist.first_point_x
+                    fy = self.seg_assist.first_point_y
+                    seg_text = "A點 = [{},{}]\nB點 = [{},{}]\n新增線段(A點, B點)\n"
+                    seg_text = seg_text.format(fx,fy, x, y)
+                    pyperclip.copy(seg_text)
+                    print('複製線段程式')
+            else : # no ctrl pressed
+                cor_text = f'[{x},{y}]'
+                pyperclip.copy(cor_text)
+                print('複製座標 '+ cor_text)
+                self.dot_mark.update_pos(x, y)   
+
         elif button == arcade.MOUSE_BUTTON_LEFT:
             # call user define handlers
             self.user_mouse_press_handler(x, y)
         
-
-        
-        
-
     def on_mouse_motion(self, x, y, dx, dy):
         
-        #self.info['mouse_x'] = x
-        #self.info['mouse_y'] = y
+        # segment assist
+
+        if self.seg_assist.enabled:
+            self.seg_assist.update_mouse_pos(x, y)
+
+    def on_mouse_release(self, x, y, button, modifiers):
         pass
-
-
+         
+                        
+                
 
     ### add object
 
