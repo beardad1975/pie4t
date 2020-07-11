@@ -7,6 +7,7 @@ from .engine import PhysicsEngine
 __all__ = [ 
             'add_circle', '新增圓球', '物理引擎',
             'simulate', 'mainloop', '模擬主迴圈', '移除',
+            'add_segment','新增線段',
 
 
 
@@ -22,6 +23,16 @@ def add_circle(*args, **kwargs):
     return common.stage.新增圓球(*args, **kwargs)
 
 新增圓球 = add_circle
+
+
+def add_segment(*args, **kwargs):
+    if not common.is_engine_created:
+        PhysicsEngine()
+    return common.stage.新增線段(*args, **kwargs)
+
+新增線段 = add_segment
+
+
 
 def 移除(obj):
     if not common.is_engine_created:

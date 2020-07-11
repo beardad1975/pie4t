@@ -1,5 +1,5 @@
 from inspect import signature
-import sys
+import sys, time
 
 import arcade
 import pymunk
@@ -11,7 +11,8 @@ from .common import COLLITYPE_DEFAULT, COLLITYPE_HOLE
 
 from .repl import Repl
 from .circle import Circle
-from .line import StaticLine
+from .segment import Segment
+from .assist import DotMark
 
 import __main__
 
@@ -39,7 +40,7 @@ class PhysicsEngine(arcade.Window, Repl):
         self.title = title
         self.set_update_rate(common.DT_UPDATE)
         self.circle_list = []
-        self.line_list = []
+        self.segment_list = []
         self.is_engine_running = False
 
         # status line
@@ -52,6 +53,23 @@ class PhysicsEngine(arcade.Window, Repl):
         self.space.gravity = common.GRAVITY
         self.sleep_time_threshold = 1
         
+        # info 
+        # self.info = {}
+        # self.info['gravity_x'] = 0
+        # self.info['gravity_y'] = 0 
+        # self.info['mouse_x'] = 0
+        # self.info['mouse_y'] = 0
+        # self.info['obj_num'] = 0
+        # self.info_text = ''
+        #self.info_update()
+
+        # infomation update (can't to fast because text create burden)
+        #arcade.schedule(self.info_update, 0.4)
+
+
+        # assist
+        self.dot_mark = DotMark()
+
         hole_handler = self.space.add_collision_handler(COLLITYPE_DEFAULT,
                 COLLITYPE_HOLE)
 
@@ -63,10 +81,26 @@ class PhysicsEngine(arcade.Window, Repl):
         hole_handler.separate = self.hole_separate_callback
 
 
+
+
         # custom event handler ref
         self.user_mouse_press_handler = lambda x, y: print('default mouse press')
 
         print(f"建立物理舞台(寬{self.win_width}x高{self.win_height})")
+
+    # def info_update(self, dt=0):
+    #     self.info['gravity_x'] = int(self.space.gravity.x)
+    #     self.info['gravity_y'] = int(self.space.gravity.y) 
+    #     self.info['obj_num'] = self.object_num
+
+    #     gx = self.info['gravity_x']
+    #     gy = self.info['gravity_y']
+    #     mx = self.info['mouse_x']
+    #     my = self.info['mouse_y']
+    #     obj_num = self.info['obj_num']
+    #     self.info_text = f'重力[{gx},{gy}] 滑鼠[{mx},{my}] 物體數:{obj_num} ' 
+    #     print(self.info_text)      
+
 
     def hole_begin_callback(self, arbiter, space, data):
         #print('begin res ', arbiter.restitution)
@@ -104,25 +138,30 @@ class PhysicsEngine(arcade.Window, Repl):
         for i in self.circle_list:
             i.lazy_setup()
         
-        for i in self.line_list:
+        for i in self.segment_list:
             i.lazy_setup()
+
+        # assist 
+        self.dot_mark.lazy_setup()
+
+
 
     def setup_pinball_layout(self):
         
-        self.add_line((488,696),(473,754), 3)
-        self.add_line((473,754), (437,775), 3)
-        self.add_line((437,775), (390,790), 3)
+        self.add_segment((488,696),(473,754), 3)
+        self.add_segment((473,754), (437,775), 3)
+        self.add_segment((437,775), (390,790), 3)
 
-        self.add_line((426,30),(426,660),3)
+        self.add_segment((426,30),(426,660),3)
 
         # 隔板
         for i in range(6):
-            self.add_line((60+i*60,120),(60+i*60,220),3)
+            self.add_segment((60+i*60,120),(60+i*60,220),3)
 
         
 
         
-        self.add_line((11,70),(358,47),3)
+        self.add_segment((11,70),(358,47),3)
         # self.add_line()
 
         # self.add_line()
@@ -136,10 +175,10 @@ class PhysicsEngine(arcade.Window, Repl):
 
     def setup_wall_around(self):
         thick = 10
-        #self.add_line( (thick,25), (self.win_width-thick,25), thick)
-        #self.add_line( (thick,self.win_height-thick), (self.win_width-thick,self.win_height-thick),thick)
-        #self.add_line( (thick,25), (thick,self.win_height-thick),thick)
-        #self.add_line( (self.win_width-thick,25), (self.win_width-thick,self.win_height-thick),thick)
+        #self.新增線段( (thick,25), (self.win_width-thick,25), thick)
+        self.add_segment( (thick,self.win_height-thick), (self.win_width-thick,self.win_height-thick),thick)
+        self.add_segment( (thick,25), (thick,self.win_height-thick),thick)
+        self.add_segment( (self.win_width-thick,25), (self.win_width-thick,self.win_height-thick),thick)
 
         # pass
         # line1 = StaticLine((400,200),(100,300))
@@ -201,16 +240,21 @@ class PhysicsEngine(arcade.Window, Repl):
         for b in self.circle_list:
             b.draw()
             
-        for li in self.line_list:
+        for li in self.segment_list:
             #print('line: ', li.shape_element.center_x, li.shape_element.center_y)
             li.draw()
 
-        # draw status line
-        gx = int(self.space.gravity.x)
-        gy = int(self.space.gravity.y)
 
-        text = f'滑鼠右鍵複製座標  重力({gx},{gy})  ' 
-        arcade.draw_text(text, 0, 0, arcade.csscolor.WHITE, 14, font_name=self.font)
+        # draw assist
+        self.dot_mark.draw()
+
+        # draw status line
+        #gx = int(self.space.gravity.x)
+        #gy = int(self.space.gravity.y)
+
+
+        #arcade.draw_text(self.info_text, 0, 0, 
+        #                    arcade.csscolor.WHITE, 14, font_name=self.font)
     
     def on_update(self, dt):
         # physics engine 
@@ -233,11 +277,16 @@ class PhysicsEngine(arcade.Window, Repl):
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_RIGHT:
-            cor_text = f'({self.status_x},{self.status_y})'
+            #mx = self.info['mouse_x']
+            #my = self.info['mouse_y']
+            cor_text = f'[{x},{y}]'
             pyperclip.copy(cor_text)
-            print('複製座標 '+ cor_text)
+            print('複製座標 '+ cor_text)            
+                      
+            self.dot_mark.update_pos(x, y)
+            
         elif button == arcade.MOUSE_BUTTON_LEFT:
-            # call user define handler
+            # call user define handlers
             self.user_mouse_press_handler(x, y)
         
 
@@ -246,16 +295,21 @@ class PhysicsEngine(arcade.Window, Repl):
 
     def on_mouse_motion(self, x, y, dx, dy):
         
-        self.status_x = x
-        self.status_y = y
+        #self.info['mouse_x'] = x
+        #self.info['mouse_y'] = y
+        pass
 
 
 
     ### add object
 
-    def add_line(self, a, b, thickness=3):
-        line = StaticLine(a,b,thickness)
-        self.line_list.append(line)
+    def add_segment(self,*args, **kwargs):
+        s = Segment(*args, **kwargs)
+        self.segment_list.append(s)
+        return s
+
+    新增線段 = add_segment
+
 
     def 新增圓球(self, *args, **kwargs):
         c = Circle(*args, **kwargs)
@@ -268,7 +322,12 @@ class PhysicsEngine(arcade.Window, Repl):
         self.space.remove(obj.phy_body)
         if isinstance(obj, Circle):
             self.circle_list.remove(obj)
-
+            del obj.dynamic_shape_element
+            del obj.kinematic_shape_element
+            
+        del obj.phy_shape
+        del obj.phy_body
+        del obj
 
 
     ### property

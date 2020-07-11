@@ -87,20 +87,20 @@ class Circle:
             #print('exceed y min')
             #body.position = Vec2d(x, common.POSITION_Y_MAX)
             common.stage.移除(self)
-            print('remove: ', self)
+            #print('remove: ', self)
         elif y > common.POSITION_Y_MAX:
             #body.position = Vec2d(x, common.POSITION_Y_MIN )
             common.stage.移除(self)
-            print('remove: ', self)
+            #print('remove: ', self)
         elif x < common.POSITION_X_MIN :
             #print('exceed y min')
             #body.position = Vec2d(common.POSITION_X_MAX, y )
             common.stage.移除(self)
-            print('remove: ', self)
+            #print('remove: ', self)
         elif x > common.POSITION_X_MAX:
             #body.position = Vec2d(common.POSITION_X_MIN, y ) 
             common.stage.移除(self)
-            print('remove: ', self)       
+            #print('remove: ', self)       
 
             #print('exceed y max')
             #print(body.position)
