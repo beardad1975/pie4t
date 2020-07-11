@@ -29,12 +29,13 @@ class PhysicsEngine(arcade.Window, Repl):
         __main__.stage = self
         __main__.物理舞台 = self
 
-        
+        self.pause_simulate = False 
+        self.slow_simulate = False
 
         self.win_width = 寬 if 寬 > common.MIN_WIDTH else common.MIN_WIDTH
         self.win_height = 高 if 高 > common.MIN_HEIGHT else common.MIN_HEIGHT
 
-        print('stage size: ', self.win_width, self.win_height)
+        #print('stage size: ', self.win_width, self.win_height)
         __main__.中央座標 = (self.win_width, self.win_height//2)
 
         self.title = title
@@ -44,9 +45,9 @@ class PhysicsEngine(arcade.Window, Repl):
         self.is_engine_running = False
 
         # status line
-        self.font =  ('C:/Windows/Fonts/msjh.ttc','arial')
-        self.status_x = 0
-        self.status_y = 0
+        #self.font =  ('C:/Windows/Fonts/msjh.ttc','arial')
+        #self.status_x = 0
+        #self.status_y = 0
 
         # pymunk space
         self.space = pymunk.Space()
@@ -84,8 +85,11 @@ class PhysicsEngine(arcade.Window, Repl):
 
 
 
-        # custom event handler ref
-        self.user_mouse_press_handler = lambda x, y: print('default mouse press')
+        # default custom event handler 
+        self.user_mouse_press_handler = lambda x, y :  None
+        self.user_mouse_release_handler = lambda x, y: None
+        self.user_key_press_handler = lambda key: None
+        self.user_key_release_handler = lambda key: None
 
         print(f"建立物理舞台(寬{self.win_width}x高{self.win_height})")
 
@@ -210,28 +214,60 @@ class PhysicsEngine(arcade.Window, Repl):
 
 
     def collect_user_event_handlers(self):
-        if hasattr(__main__, 'on_mouse_press'):
-            # check number of parameters
-            sig = signature(__main__.on_mouse_press)
-            if len(sig.parameters) == 4:
-                 # parameters: x, y, button, modifiers
-                self.user_mouse_press_handler = __main__.on_mouse_ress
-                print( 'handler registed: on_mouse_press' )
-            else:
-                print('handler error: on_mouse_press needs  4 parameters')
-                sys.exit()
+        # if hasattr(__main__, 'on_mouse_press'):
+        #     # check number of parameters
+        #     sig = signature(__main__.on_mouse_press)
+        #     if len(sig.parameters) == 4:
+        #          # parameters: x, y, button, modifiers
+        #         self.user_mouse_press_handler = __main__.on_mouse_ress
+        #         print( 'handler registed: on_mouse_press' )
+        #     else:
+        #         print('handler error: on_mouse_press needs  4 parameters')
+        #         sys.exit()
 
-        if hasattr(__main__, '按下滑鼠時'):
+        if hasattr(__main__, '按下滑鼠左鍵時'):
             # check number of parameters
-            sig = signature(__main__.按下滑鼠時)
+            sig = signature(__main__.按下滑鼠左鍵時)
             if len(sig.parameters) == 2:
                  # parameters: x, y, button, modifiers
-                self.user_mouse_press_handler = __main__.按下滑鼠時
-                print( '登錄處理函式：按下滑鼠時' )
+                self.user_mouse_press_handler = __main__.按下滑鼠左鍵時
+                print( '登錄處理函式：按下滑鼠左鍵時' )
             else:
-                print('處理函式錯誤: 按下滑鼠時 需要2個參數')
+                print('處理函式錯誤: 按下滑鼠左鍵時 需要2個參數')
                 sys.exit()
 
+        if hasattr(__main__, '放開滑鼠左鍵時'):
+            # check number of parameters
+            sig = signature(__main__.放開滑鼠左鍵時)
+            if len(sig.parameters) == 2:
+                 # parameters: x, y, button, modifiers
+                self.user_mouse_release_handler = __main__.放開滑鼠左鍵時
+                print( '登錄處理函式：放開滑鼠左鍵時' )
+            else:
+                print('處理函式錯誤: 放開滑鼠左鍵時 需要2個參數')
+                sys.exit()
+
+        if hasattr(__main__, '按下鍵盤時'):
+            # check number of parameters
+            sig = signature(__main__.按下鍵盤時)
+            if len(sig.parameters) == 1:
+                 # parameters: x, y, button, modifiers
+                self.user_key_press_handler = __main__.按下鍵盤時
+                print( '登錄處理函式：按下鍵盤時' )
+            else:
+                print('處理函式錯誤: 按下鍵盤時 需要1個參數')
+                sys.exit()
+
+        if hasattr(__main__, '放開鍵盤時'):
+            # check number of parameters
+            sig = signature(__main__.放開鍵盤時)
+            if len(sig.parameters) == 1:
+                 # parameters: x, y, button, modifiers
+                self.user_key_release_handler = __main__.放開鍵盤時
+                print( '登錄處理函式：放開鍵盤時' )
+            else:
+                print('處理函式錯誤: 放開鍵盤時 需要1個參數')
+                sys.exit()
 
     ### event
 
@@ -260,8 +296,13 @@ class PhysicsEngine(arcade.Window, Repl):
     def on_update(self, dt):
         # physics engine 
         #print('dt:', dt)
-        for i in range(common.DT_SPLIT_NUM):
-            self.space.step(common.DT_SPLIT)
+        if not self.pause_simulate:
+            if not self.slow_simulate:
+                for i in range(common.DT_SPLIT_NUM):
+                    self.space.step(common.DT_SPLIT)
+            else: # slow mode
+                for i in range(common.DT_SPLIT_NUM // 4):
+                    self.space.step(common.DT_SPLIT)
 
 
         # step_dt = 1/200.
@@ -276,10 +317,15 @@ class PhysicsEngine(arcade.Window, Repl):
         if symbol == arcade.key.ESCAPE:
             self.close()
 
+        # call user fucntion
+        self.user_key_press_handler(symbol)
+
     def on_key_release(self, symbol, mod):
         if symbol in (arcade.key.LCTRL, arcade.key.RCTRL):
             #print('ctrl released')
             self.seg_assist.cancel_first()
+        
+        self.user_key_release_handler(symbol)
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_RIGHT:
@@ -292,7 +338,7 @@ class PhysicsEngine(arcade.Window, Repl):
                     self.seg_assist.click_second(x, y)
                     fx = self.seg_assist.first_point_x
                     fy = self.seg_assist.first_point_y
-                    seg_text = "A點 = [{},{}]\nB點 = [{},{}]\n新增線段(A點, B點)\n"
+                    seg_text = "A點 = [{},{}]\nB點 = [{},{}]\n新增線段(A點, B點, 寬=4)\n"
                     seg_text = seg_text.format(fx,fy, x, y)
                     pyperclip.copy(seg_text)
                     print('複製線段程式')
@@ -314,7 +360,9 @@ class PhysicsEngine(arcade.Window, Repl):
             self.seg_assist.update_mouse_pos(x, y)
 
     def on_mouse_release(self, x, y, button, modifiers):
-        pass
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            # call user define handlers
+            self.user_mouse_release_handler(x, y)
          
                         
                 
@@ -375,4 +423,20 @@ class PhysicsEngine(arcade.Window, Repl):
         num = len(self.circle_list) 
         return num
 
+
+    @property
+    def 模擬暫停(self):
+        return self.pause_simulate
+
+    @模擬暫停.setter
+    def 模擬暫停(self, value):
+        self.pause_simulate = value 
+
+    @property
+    def 慢動作(self):
+        return self.slow_simulate
+
+    @慢動作.setter
+    def 慢動作(self, value):
+        self.slow_simulate = value
   
