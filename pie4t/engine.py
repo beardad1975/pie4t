@@ -11,6 +11,7 @@ from .common import COLLITYPE_DEFAULT, COLLITYPE_HOLE
 
 from .repl import Repl
 from .circle import Circle
+from .box import Box
 from .segment import Segment
 from .assist import DotMark, SegmentAssist, ArrowAssist
 
@@ -41,6 +42,7 @@ class PhysicsEngine(arcade.Window, Repl):
         self.title = title
         self.set_update_rate(common.DT_UPDATE)
         self.circle_list = []
+        self.poly_list = []
         self.segment_list = []
         self.is_engine_running = False
 
@@ -293,6 +295,9 @@ class PhysicsEngine(arcade.Window, Repl):
         for b in self.circle_list:
             b.draw()
             
+        for p in self.poly_list:
+            p.draw()
+
         for li in self.segment_list:
             #print('line: ', li.shape_element.center_x, li.shape_element.center_y)
             li.draw()
@@ -385,6 +390,7 @@ class PhysicsEngine(arcade.Window, Repl):
                 self.arrow_assist.launch()
                 vector = self.arrow_assist.vector
                 start_pos = self.arrow_assist.start_pos
+                print('start_pos: ', start_pos)
                 self.user_arrow_launch_handler(vector, start_pos)
 
             # call user define handlers
@@ -408,12 +414,22 @@ class PhysicsEngine(arcade.Window, Repl):
         self.circle_list.append(c)
         return c
 
+    def 新增方塊(self, *args, **kwargs):
+        b = Box(*args, **kwargs)
+        self.poly_list.append(b)
+        return b
+
     def 移除(self, obj):
         # remove shape and body from space
         self.space.remove(obj.phy_shape)
         self.space.remove(obj.phy_body)
         if isinstance(obj, Circle):
             self.circle_list.remove(obj)
+            del obj.dynamic_shape_element
+            del obj.kinematic_shape_element
+        
+        if isinstance(obj, Box):
+            self.poly_list.remove(obj)
             del obj.dynamic_shape_element
             del obj.kinematic_shape_element
             
@@ -445,12 +461,12 @@ class PhysicsEngine(arcade.Window, Repl):
 
     @property
     def object_num(self):
-        num = len(self.circle_list) 
+        num = len(self.circle_list) + len(self.poly_list) 
         return num
 
     @property
     def 物體數量(self):
-        num = len(self.circle_list) 
+        num = len(self.circle_list) + len(self.poly_list) 
         return num
 
 

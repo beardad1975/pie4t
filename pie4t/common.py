@@ -1,4 +1,4 @@
-
+import arcade
 ### default
 
 WIDTH = 600
@@ -22,6 +22,11 @@ DENSITY = 0.001
 FRICTION = 0.5
 ELASTICITY = 0.95
 
+
+
+
+
+
 VELOCITY_LIMIT = 1000
 
 POSITION_Y_MAX = HEIGHT * 4
@@ -36,6 +41,22 @@ SEG_THICKNESS = 4
 ASSIST_MARK_PERIOD = 5
 
 
+#shape
+SHAPE_COLORS = (arcade.color.WINDSOR_TAN,
+               arcade.color.VIVID_VIOLET,
+               arcade.color.ULTRAMARINE_BLUE,
+               arcade.color.TANGELO,
+               arcade.color.AO,
+               )
+
+CIRCLE_RADIUS_MAX = 30
+CIRCLE_RADIUS_MIN = 10
+
+BOX_WIDTH_MAX = 60
+BOX_WIDTH_MIN = 20
+
+BOX_ELASTICITY = 0.5
+BOX_FRICTION = 0.3
 # collision type
 COLLITYPE_DEFAULT = 0
 

@@ -142,8 +142,9 @@ class ArrowAssist:
             sy = self.start_y
             mx = common.stage.mouse_x
             my = common.stage.mouse_y
-
-            if self.vector.length > 40:
+            length = self.vector.length
+            #print("length: ",self.vector.length )
+            if length > 40:
                 line_v = self.vector
                 line_v.length -= 30
 
@@ -151,15 +152,20 @@ class ArrowAssist:
                 arcade.draw_line(sx, sy, sx + line_v.x, sy + line_v.y,
                             arcade.color.RED ,common.SEG_THICKNESS*3)
                 # triangle
-            
+                #if length 
+                if length < 500:
+                    degree_delta =  15 - length / 50
+                else:
+                    degree_delta = 5
+                
 
                 left_v = self.vector
                 left_v.length -= 30
-                left_v.angle_degrees += 5
+                left_v.angle_degrees += degree_delta 
 
                 right_v = self.vector
                 right_v.length -= 30
-                right_v.angle_degrees -= 5
+                right_v.angle_degrees -= degree_delta 
 
                 
 
