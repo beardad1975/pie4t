@@ -22,10 +22,16 @@ class Segment:
         self.phy_body = pymunk.Body(body_type=pymunk.Body.STATIC)
         self.phy_body.position = a
         a_b_delta = (b[0] - a[0], b[1]-a[1])
-        self.phy_shape = pymunk.Segment(self.phy_body,(0,0), a_b_delta, self.thickness//2)
+        self.phy_shape = pymunk.Segment(self.phy_body,(0,0), a_b_delta, 
+                                self.thickness//2)
         self.phy_shape.friction = 1
         self.phy_shape.elasticity = 1
         self.phy_shape.collision_type = common.COLLITYPE_SEGMENT
+
+        self.phy_shape.filter = pymunk.ShapeFilter(categories=common.CATE_SEGMENT)
+
+        self.phy_shape.obj = self
+
         common.stage.space.add(self.phy_shape)
         
         if common.stage.is_engine_running:
@@ -38,7 +44,8 @@ class Segment:
             self.shape_element = arcade.ShapeElementList()
             a = self.a
             b = self.b
-            self.line_shape = arcade.create_line(a[0], a[1], b[0], b[1], arcade.color.YELLOW_ORANGE, self.thickness)
+            self.line_shape = arcade.create_line(a[0], a[1], b[0], b[1],
+                     arcade.color.YELLOW_ORANGE, self.thickness)
             self.is_lazy_setup = True
 
     def draw(self):

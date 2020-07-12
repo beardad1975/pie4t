@@ -1,5 +1,5 @@
 from inspect import signature
-import sys, time
+import sys, time, json
 
 import arcade
 import pymunk
@@ -13,7 +13,7 @@ from .repl import Repl
 from .circle import Circle
 from .box import Box
 from .segment import Segment
-from .assist import DotMark, SegmentAssist, ArrowAssist
+from .assist import DotMark, SegmentAddAssist, ArrowAssist, SegmentRemoveAssist
 
 import __main__
 
@@ -47,7 +47,9 @@ class PhysicsEngine(arcade.Window, Repl):
         self.is_engine_running = False
 
         # status line
-        #self.font =  ('C:/Windows/Fonts/msjh.ttc','arial')
+        self.font =  ('C:/Windows/Fonts/msjh.ttc','arial')
+
+        self.terrain_filename = __main__.__file__ + '.地形'
 
         # retain mouse postion while mouse motion event
         self.mouse_x = 0
@@ -74,7 +76,8 @@ class PhysicsEngine(arcade.Window, Repl):
 
         # assist
         self.dot_mark = DotMark()
-        self.seg_assist = SegmentAssist()
+        self.seg_add_assist = SegmentAddAssist()
+        self.seg_remove_assist = SegmentRemoveAssist()
         self.arrow_assist = ArrowAssist()
 
         hole_handler = self.space.add_collision_handler(COLLITYPE_DEFAULT,
@@ -148,32 +151,35 @@ class PhysicsEngine(arcade.Window, Repl):
         #print('do engine lazy setup')
         for i in self.circle_list:
             i.lazy_setup()
-        
+
+        for i in self.poly_list:
+            i.lazy_setup()
+
         for i in self.segment_list:
             i.lazy_setup()
 
         # assist 
         self.dot_mark.lazy_setup()
-        self.seg_assist.lazy_setup()
-        self.arrow_assist.lazy_setup()
-
-
-    def setup_pinball_layout(self):
-        
-        self.add_segment((488,696),(473,754), 3)
-        self.add_segment((473,754), (437,775), 3)
-        self.add_segment((437,775), (390,790), 3)
-
-        self.add_segment((426,30),(426,660),3)
-
-        # 隔板
-        for i in range(6):
-            self.add_segment((60+i*60,120),(60+i*60,220),3)
-
         
 
+
+
+    # def setup_pinball_layout(self):
         
-        self.add_segment((11,70),(358,47),3)
+    #     self.add_segment((488,696),(473,754), 3)
+    #     self.add_segment((473,754), (437,775), 3)
+    #     self.add_segment((437,775), (390,790), 3)
+
+    #     self.add_segment((426,30),(426,660),3)
+
+    #     # 隔板
+    #     for i in range(6):
+    #         self.add_segment((60+i*60,120),(60+i*60,220),3)
+
+        
+
+        
+    #     self.add_segment((11,70),(358,47),3)
         # self.add_line()
 
         # self.add_line()
@@ -185,12 +191,12 @@ class PhysicsEngine(arcade.Window, Repl):
         # self.add_line()
 
 
-    def setup_wall_around(self):
-        thick = 10
-        #self.新增線段( (thick,25), (self.win_width-thick,25), thick)
-        self.add_segment( (thick,self.win_height-thick), (self.win_width-thick,self.win_height-thick),thick)
-        self.add_segment( (thick,25), (thick,self.win_height-thick),thick)
-        self.add_segment( (self.win_width-thick,25), (self.win_width-thick,self.win_height-thick),thick)
+    # def setup_wall_around(self):
+    #     thick = 10
+    #     #self.新增線段( (thick,25), (self.win_width-thick,25), thick)
+    #     self.add_segment( (thick,self.win_height-thick), (self.win_width-thick,self.win_height-thick),thick)
+    #     self.add_segment( (thick,25), (thick,self.win_height-thick),thick)
+    #     self.add_segment( (self.win_width-thick,25), (self.win_width-thick,self.win_height-thick),thick)
 
         # pass
         # line1 = StaticLine((400,200),(100,300))
@@ -214,11 +220,43 @@ class PhysicsEngine(arcade.Window, Repl):
         self.collect_user_event_handlers()
         self.start_repl()
 
-        
+        # try cursor
+        #cur = self.get_system_mouse_cursor('crosshair')
+        #cur = self.get_system_mouse_cursor('help')
+        # set cursor to default
+        #cur = self.get_system_mouse_cursor('help')
+        self.set_mouse_cursor(None)
 
         self.is_engine_running = True
         arcade.run()    
 
+
+    def save_terrain(self):
+        terrain_list = []
+        for s in self.segment_list:
+            tmp = [s.a, s.b, s.thickness]
+            terrain_list.append(tmp)
+            
+        
+        with open(self.terrain_filename, 'w', encoding='utf-8') as f:
+            json.dump(terrain_list, f)
+            
+        #print('save terrain')
+
+
+    def load_terrain(self):
+        try:
+            with open(self.terrain_filename, 'r', encoding='utf-8') as f:
+                terrain_list = json.load(f)
+        except FileNotFoundError:
+            print('找不到地形檔')
+        else:
+            self.segment_list = []
+            for item in terrain_list:
+                self.新增線段(item[0], item[1], item[2])
+            print('地形載入完成')
+
+    載入地形 = load_terrain
 
     def collect_user_event_handlers(self):
         # if hasattr(__main__, 'on_mouse_press'):
@@ -305,15 +343,19 @@ class PhysicsEngine(arcade.Window, Repl):
 
         # draw assist
         self.dot_mark.draw()
-        self.seg_assist.draw()
+        self.seg_add_assist.draw()
+        self.seg_remove_assist.draw()
         self.arrow_assist.draw()
         # draw status line
         #gx = int(self.space.gravity.x)
         #gy = int(self.space.gravity.y)
 
-
-        #arcade.draw_text(self.info_text, 0, 0, 
-        #                    arcade.csscolor.WHITE, 14, font_name=self.font)
+        if self.seg_add_assist.enabled:
+            arcade.draw_text('新增地形(滑鼠右鍵)', 0, 0, 
+                            arcade.csscolor.WHITE, 14, font_name=self.font)
+        elif self.seg_remove_assist.enabled:
+            arcade.draw_text('移除地形(滑鼠右鍵)', 0, 0, 
+                            arcade.csscolor.WHITE, 14, font_name=self.font)
     
     def on_update(self, dt):
         # physics engine 
@@ -338,39 +380,49 @@ class PhysicsEngine(arcade.Window, Repl):
     def on_key_press(self, symbol, mod):
         if symbol == arcade.key.ESCAPE:
             self.close()
-
-        # call user fucntion
-        self.user_key_press_handler(symbol)
+        elif symbol in (arcade.key.LCTRL, arcade.key.RCTRL):
+            self.seg_add_assist.enable()
+            #self.seg_remove_assist.disable()
+        elif symbol in (arcade.key.LALT, arcade.key.RALT):
+            self.seg_remove_assist.enable()
+            #self.seg_add_assist.disable()
+        elif not self.模擬暫停:
+            self.user_key_press_handler(symbol)
 
     def on_key_release(self, symbol, mod):
         if symbol in (arcade.key.LCTRL, arcade.key.RCTRL):
             #print('ctrl released')
-            self.seg_assist.cancel_first()
-        
-        self.user_key_release_handler(symbol)
+            self.seg_add_assist.disable()
+        elif symbol in (arcade.key.LALT, arcade.key.RALT):
+            self.seg_remove_assist.disable()
+        elif not self.模擬暫停:
+            self.user_key_release_handler(symbol)
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_RIGHT:
             if modifiers & arcade.key.MOD_CTRL:
-                if not self.seg_assist.enabled:
-                    # do frist point
-                    self.seg_assist.click_first(x, y)
+                if self.seg_add_assist.enabled:
+                    self.seg_add_assist.click(x, y)
+                
                     #print('click first')
-                else: # do second point
-                    self.seg_assist.click_second(x, y)
-                    fx = self.seg_assist.first_point_x
-                    fy = self.seg_assist.first_point_y
-                    seg_text = "A點 = [{},{}]\nB點 = [{},{}]\n新增線段(A點, B點, 寬=4)\n"
-                    seg_text = seg_text.format(fx,fy, x, y)
-                    pyperclip.copy(seg_text)
-                    print('複製線段程式')
+                # else: # do second point
+                #     self.seg_add_assist.click_second(x, y)
+                #     fx = self.seg_add_assist.first_point_x
+                #     fy = self.seg_add_assist.first_point_y
+                #     seg_text = "A點 = [{},{}]\nB點 = [{},{}]\n新增線段(A點, B點, 寬=4)\n"
+                #     seg_text = seg_text.format(fx,fy, x, y)
+                #     pyperclip.copy(seg_text)
+                #     print('複製線段程式')
+            elif modifiers & arcade.key.MOD_ALT:
+                if self.seg_remove_assist.enabled:
+                    self.seg_remove_assist.click(x, y)
             else : # no ctrl pressed
                 cor_text = f'[{x},{y}]'
                 pyperclip.copy(cor_text)
                 print('複製座標 '+ cor_text)
                 self.dot_mark.update_pos(x, y)   
 
-        elif button == arcade.MOUSE_BUTTON_LEFT:
+        elif button == arcade.MOUSE_BUTTON_LEFT and not self.模擬暫停:
             # call user define handlers
             self.user_mouse_press_handler(x, y)
         
@@ -380,8 +432,11 @@ class PhysicsEngine(arcade.Window, Repl):
         self.mouse_x = x
         self.mouse_y = y
 
-        # if self.seg_assist.enabled:
-        #     self.seg_assist.update_mouse_pos(x, y)
+        if self.seg_remove_assist.enabled:
+            self.seg_remove_assist.update_hover(x, y)
+
+        # if self.seg_add_assist.enabled:
+        #     self.seg_add_assist.update_mouse_pos(x, y)
 
     def on_mouse_release(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
@@ -394,7 +449,8 @@ class PhysicsEngine(arcade.Window, Repl):
                 self.user_arrow_launch_handler(vector, start_pos)
 
             # call user define handlers
-            self.user_mouse_release_handler(x, y)
+            if not self.模擬暫停:
+                self.user_mouse_release_handler(x, y)
          
                         
                 
@@ -420,22 +476,30 @@ class PhysicsEngine(arcade.Window, Repl):
         return b
 
     def 移除(self, obj):
+        if isinstance(obj, Segment):
+            self.space.remove(obj.phy_shape)
+            self.segment_list.remove(obj)
+            del obj.shape_element
+            del obj.phy_shape
+            del obj.phy_body
+            del obj
+        else: 
         # remove shape and body from space
-        self.space.remove(obj.phy_shape)
-        self.space.remove(obj.phy_body)
-        if isinstance(obj, Circle):
-            self.circle_list.remove(obj)
-            del obj.dynamic_shape_element
-            del obj.kinematic_shape_element
-        
-        if isinstance(obj, Box):
-            self.poly_list.remove(obj)
-            del obj.dynamic_shape_element
-            del obj.kinematic_shape_element
+            self.space.remove(obj.phy_shape)
+            self.space.remove(obj.phy_body)
+            if isinstance(obj, Circle):
+                self.circle_list.remove(obj)
+                del obj.dynamic_shape_element
+                del obj.kinematic_shape_element
             
-        del obj.phy_shape
-        del obj.phy_body
-        del obj
+            if isinstance(obj, Box):
+                self.poly_list.remove(obj)
+                del obj.dynamic_shape_element
+                del obj.kinematic_shape_element
+
+            del obj.phy_shape
+            del obj.phy_body
+            del obj
 
     ### assist
     def 箭頭開始(self, *args, **kwargs):

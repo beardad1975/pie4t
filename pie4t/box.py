@@ -48,6 +48,7 @@ class Box(PhysicsCommon):
         self.phy_shape.elasticity = common.BOX_ELASTICITY
         # keep referene to self in shape. For delete
         self.phy_shape.obj = self
+        self.phy_shape.filter = pymunk.ShapeFilter(categories=common.CATE_BOX)
 
         common.stage.space.add(self.phy_body, self.phy_shape)
         

@@ -48,6 +48,7 @@ class Circle(PhysicsCommon):
         self.phy_shape.elasticity = common.ELASTICITY
         # keep referene to self in shape. For delete
         self.phy_shape.obj = self
+        self.phy_shape.filter = pymunk.ShapeFilter(categories=common.CATE_CIRCLE)
 
         #self.moment = pymunk.moment_for_circle(self.mass, 0, self.radius)
         #self.body = pymunk.Body(self.mass, self.moment)

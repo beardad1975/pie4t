@@ -1,6 +1,7 @@
 from time import time
 
 import arcade
+import pymunk
 from pymunk.vec2d import Vec2d
 from . import common
 
@@ -43,57 +44,125 @@ class DotMark:
                 self.enabled = False
 
 
-class SegmentAssist:
+class SegmentAddAssist:
     def __init__(self):
-        self.enabled = False
-
-        self.first_point_x = 0
-        self.first_point_y = 0
-        #self.mouse_x = 0
-        #self.mouse_y = 0
+        self._enabled = False
+        self.first_clicked = False
+        self.first_x = 0
+        self.first_y = 0
+        self.second_x = 0 
+        self.second_y = 0
+        self.dirty = False
          
-        
+    def enable(self):
+        self._enabled = True
+        self.first_clicked = False
+        self.first_x = 0
+        self.first_y = 0
+        self.second_x = 0 
+        self.second_y = 0
+        self.dirty = False
+        cur = common.stage.get_system_mouse_cursor('crosshair')
+        common.stage.set_mouse_cursor(cur)
+        common.stage.模擬暫停 = True        
 
-    def lazy_setup(self):
-        #self.shape_list = arcade.ShapeElementList()
-        pass
+    def disable(self):
+        self._enabled = False
+        common.stage.set_mouse_cursor(None)
+        common.stage.模擬暫停 = False
 
-    def click_first(self, x, y ):
-        self.first_point_x = x
-        self.first_point_y = y
-        #self.mouse_x = x
-        #self.mouse_y = y
-        self.enabled = True
-        #common.stage.dot_mark.update_pos(x, y)
+        if self.dirty:
+           common.stage.save_terrain()  
 
-    def cancel_first(self):
-        self.enabled= False
-        #common.stage.dot_mark.enabled = False
+    @property
+    def enabled(self):
+        return self._enabled
 
-    def click_second(self, x, y ):
-        # add segment
-        
-        fx = self.first_point_x
-        fy = self.first_point_y
-        
-        if not (fx == x and fy == y):
-            common.stage.新增線段((fx,fy),(x, y), common.SEG_THICKNESS)
-            self.enabled = False
-        else:
-            print('segment too short')
-        
+    # def lazy_setup(self):
+    #     #self.shape_list = arcade.ShapeElementList()
+    #     pass
 
-    # def update_mouse_pos(self, x, y):
-    #     self.mouse_x = x
-    #     self.mouse_y = y
+    def click(self, x, y):
+        if not self.first_clicked:
+            # first click
+            self.first_x = x
+            self.first_y = y
+            self.first_clicked = True
+        else: # second click
+            self.second_x = x
+            self.second_y = y
+            self.first_clicked = False
 
+            if not (self.first_x == self.second_x and self.first_y == self.second_y):
+                common.stage.新增線段((self.first_x,self.first_y),
+                                      (self.second_x, self.second_y),
+                                       common.SEG_THICKNESS)
+                self.dirty = True
+                
     def draw(self):
-        if self.enabled :
-            fx = self.first_point_x
-            fy = self.first_point_y
+        if self._enabled and self.first_clicked:
+            fx = self.first_x
+            fy = self.first_y
             mx = common.stage.mouse_x
             my = common.stage.mouse_y
             arcade.draw_line(fx, fy, mx, my,arcade.color.GREEN ,common.SEG_THICKNESS)
+
+
+class SegmentRemoveAssist:
+    def __init__(self):
+        self._enabled = False
+        self.dirty = False
+        self.hover_segment = None
+        self.seg_filter = pymunk.ShapeFilter(mask=common.CATE_SEGMENT)
+
+    def enable(self):
+        self._enabled = True
+        self.dirty = False
+        self.hover_segment = None
+        cur = common.stage.get_system_mouse_cursor('help')
+        common.stage.set_mouse_cursor(cur)
+        common.stage.模擬暫停 = True        
+
+    def disable(self):
+        self._enabled = False
+        common.stage.set_mouse_cursor(None)
+        common.stage.模擬暫停 = False
+
+        if self.dirty:
+           common.stage.save_terrain()  
+
+    @property
+    def enabled(self):
+        return self._enabled
+
+    # def lazy_setup(self):
+    #     #self.shape_list = arcade.ShapeElementList()
+    #     pass
+
+    def draw(self):
+        if self._enabled:
+            if self.hover_segment:
+                a = self.hover_segment.a
+                b = self.hover_segment.b
+                thickness = self.hover_segment.thickness
+                arcade.draw_line(a[0], a[1], b[0], b[1],
+                     arcade.color.RED, thickness)
+
+    def click(self, x, y):
+        if self._enabled:
+            if self.hover_segment:
+                common.stage.移除(self.hover_segment)
+                self.hover_segment = None
+                self.dirty = True
+
+    def update_hover(self,x, y):
+        if self._enabled:
+            query = common.stage.space.point_query_nearest((x,y), 0, self.seg_filter)
+            if query:
+                self.hover_segment = query.shape.obj
+            else:
+                self.hover_segment = None
+
 
 class ArrowAssist:
     def __init__(self):
@@ -133,8 +202,8 @@ class ArrowAssist:
 
 
 
-    def lazy_setup(self):
-        pass
+    # def lazy_setup(self):
+    #     pass
 
     def draw(self):
         if self.enabled :
