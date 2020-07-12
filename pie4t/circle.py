@@ -172,8 +172,8 @@ class Circle:
         self.phy_body.apply_force_at_local_point(force, (0,0))
 
     def 施加衝量(self, impulse):
-        self.phy_body.apply_impulse_at_local_point(impulse, (0,0))
-
+        #self.phy_body.apply_impulse_at_local_point(impulse, (0,0))
+        self.phy_body.velocity = impulse
 
     ### circle property
     @property

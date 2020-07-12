@@ -12,7 +12,7 @@ from .common import COLLITYPE_DEFAULT, COLLITYPE_HOLE
 from .repl import Repl
 from .circle import Circle
 from .segment import Segment
-from .assist import DotMark, SegmentAssist
+from .assist import DotMark, SegmentAssist, ArrowAssist
 
 import __main__
 
@@ -46,8 +46,10 @@ class PhysicsEngine(arcade.Window, Repl):
 
         # status line
         #self.font =  ('C:/Windows/Fonts/msjh.ttc','arial')
-        #self.status_x = 0
-        #self.status_y = 0
+
+        # retain mouse postion while mouse motion event
+        self.mouse_x = 0
+        self.mouse_y = 0
 
         # pymunk space
         self.space = pymunk.Space()
@@ -71,6 +73,7 @@ class PhysicsEngine(arcade.Window, Repl):
         # assist
         self.dot_mark = DotMark()
         self.seg_assist = SegmentAssist()
+        self.arrow_assist = ArrowAssist()
 
         hole_handler = self.space.add_collision_handler(COLLITYPE_DEFAULT,
                 COLLITYPE_HOLE)
@@ -90,6 +93,7 @@ class PhysicsEngine(arcade.Window, Repl):
         self.user_mouse_release_handler = lambda x, y: None
         self.user_key_press_handler = lambda key: None
         self.user_key_release_handler = lambda key: None
+        self.user_arrow_launch_handler = lambda vector,start_pos :  None
 
         print(f"建立物理舞台(寬{self.win_width}x高{self.win_height})")
 
@@ -149,6 +153,7 @@ class PhysicsEngine(arcade.Window, Repl):
         # assist 
         self.dot_mark.lazy_setup()
         self.seg_assist.lazy_setup()
+        self.arrow_assist.lazy_setup()
 
 
     def setup_pinball_layout(self):
@@ -269,6 +274,17 @@ class PhysicsEngine(arcade.Window, Repl):
                 print('處理函式錯誤: 放開鍵盤時 需要1個參數')
                 sys.exit()
 
+        if hasattr(__main__, '箭頭發射時'):
+            # check number of parameters
+            sig = signature(__main__.箭頭發射時)
+            if len(sig.parameters) == 2:
+                 # parameters: x, y, button, modifiers
+                self.user_arrow_launch_handler = __main__.箭頭發射時
+                print( '登錄處理函式：箭頭發射時' )
+            else:
+                print('處理函式錯誤: 箭頭發射時 需要2個參數')
+                sys.exit()
+
     ### event
 
     def on_draw(self):
@@ -285,6 +301,7 @@ class PhysicsEngine(arcade.Window, Repl):
         # draw assist
         self.dot_mark.draw()
         self.seg_assist.draw()
+        self.arrow_assist.draw()
         # draw status line
         #gx = int(self.space.gravity.x)
         #gy = int(self.space.gravity.y)
@@ -355,12 +372,21 @@ class PhysicsEngine(arcade.Window, Repl):
     def on_mouse_motion(self, x, y, dx, dy):
         
         # segment assist
+        self.mouse_x = x
+        self.mouse_y = y
 
-        if self.seg_assist.enabled:
-            self.seg_assist.update_mouse_pos(x, y)
+        # if self.seg_assist.enabled:
+        #     self.seg_assist.update_mouse_pos(x, y)
 
     def on_mouse_release(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
+            # check if arrow assist need launch
+            if self.arrow_assist.enabled:
+                self.arrow_assist.launch()
+                vector = self.arrow_assist.vector
+                start_pos = self.arrow_assist.start_pos
+                self.user_arrow_launch_handler(vector, start_pos)
+
             # call user define handlers
             self.user_mouse_release_handler(x, y)
          
@@ -394,6 +420,10 @@ class PhysicsEngine(arcade.Window, Repl):
         del obj.phy_shape
         del obj.phy_body
         del obj
+
+    ### assist
+    def 箭頭開始(self, *args, **kwargs):
+        self.arrow_assist.start(*args, **kwargs)
 
 
     ### property
@@ -430,7 +460,10 @@ class PhysicsEngine(arcade.Window, Repl):
 
     @模擬暫停.setter
     def 模擬暫停(self, value):
-        self.pause_simulate = value 
+        if value :
+            self.pause_simulate = True
+        else:
+            self.pause_simulate = False 
 
     @property
     def 慢動作(self):
@@ -438,5 +471,18 @@ class PhysicsEngine(arcade.Window, Repl):
 
     @慢動作.setter
     def 慢動作(self, value):
-        self.slow_simulate = value
+        if value:
+            self.slow_simulate = True
+        else:
+            self.slow_simulate = False
   
+    # @property
+    # def 箭頭開始(self):
+    #     return self.arrow_assist.enabled
+
+    # @箭頭開始.setter
+    # def 箭頭開始(self, value):
+    #     if value:
+    #         self.arrow_assist.enabled = True
+    #     else:
+    #         self.arrow_assist.enabled = False
