@@ -55,11 +55,12 @@ class PhysicsCommon:
             #print('remove: ', self)
 
     def 施加力量(self, force):
-        self.phy_body.apply_force_at_local_point(force, (0,0))
+        #self.phy_body.apply_force_at_world_point(force, (0,0))
+        self.phy_body.force += force
 
-    def 施加衝量(self, impulse):
-        self.phy_body.apply_impulse_at_local_point(impulse, (0,0))
-        #self.phy_body.velocity = impulse
+    def 施加衝力(self, impulse):
+        #self.phy_body.apply_impulse_at_world_point(impulse, (0,0))
+        self.phy_body.velocity += impulse
 
     ### rigid body property
     @property

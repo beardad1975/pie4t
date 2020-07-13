@@ -26,10 +26,11 @@ class PhysicsEngine(arcade.Window, Repl):
         # check module level default physics engine
         
         common.stage = self
-        common.物理舞台 = self        
+        common.舞台 = self        
         common.is_engine_created = True
         __main__.stage = self
-        __main__.物理舞台 = self
+        __main__.舞台 = self
+        __main__.key = arcade.key
 
         self.pause_simulate = False 
         self.slow_simulate = False
@@ -63,7 +64,8 @@ class PhysicsEngine(arcade.Window, Repl):
         self.space.gravity = common.GRAVITY
         self.sleep_time_threshold = 1
         
-
+        self.obj_filter = pymunk.ShapeFilter(
+                    mask=common.CATE_CIRCLE | common.CATE_BOX)
 
         # info 
         # self.info = {}
@@ -99,14 +101,21 @@ class PhysicsEngine(arcade.Window, Repl):
 
 
 
-        # default custom event handler 
-        self.user_mouse_press_handler = lambda x, y :  None
-        self.user_mouse_release_handler = lambda x, y: None
-        self.user_key_press_handler = lambda key: None
-        self.user_key_release_handler = lambda key: None
-        self.user_arrow_launch_handler = lambda vector,start_pos :  None
+        # custom event handler 
+        self.user_mouse_press_handler = None
+        self.user_mouse_release_handler = None
+        self.user_key_press_handler = None
+        self.user_key_release_handler = None
+        self.user_arrow_launch_handler = None
+        self.user_mouse_drag_handler = None
+        self.user_object_click_handler = None
+        # self.user_mouse_press_handler = lambda x, y :  None
+        # self.user_mouse_release_handler = lambda x, y: None
+        # self.user_key_press_handler = lambda key: None
+        # self.user_key_release_handler = lambda key: None
+        # self.user_arrow_launch_handler = lambda vector,start_pos :  None
 
-        print(f"建立物理舞台(寬{self.win_width}x高{self.win_height})")
+        print(f"建立舞台(寬{self.win_width}x高{self.win_height})")
 
         if not self.load_terrain():
             #default terrain
@@ -292,27 +301,53 @@ class PhysicsEngine(arcade.Window, Repl):
         #         print('handler error: on_mouse_press needs  4 parameters')
         #         sys.exit()
 
-        if hasattr(__main__, '按下滑鼠左鍵時'):
+        if hasattr(__main__, '按下滑鼠時'):
             # check number of parameters
-            sig = signature(__main__.按下滑鼠左鍵時)
+            sig = signature(__main__.按下滑鼠時)
             if len(sig.parameters) == 2:
                  # parameters: x, y, button, modifiers
-                self.user_mouse_press_handler = __main__.按下滑鼠左鍵時
-                print( '登錄處理函式：按下滑鼠左鍵時' )
+                self.user_mouse_press_handler = __main__.按下滑鼠時
+                print( '登錄事件函式：按下滑鼠時' )
             else:
-                print('處理函式錯誤: 按下滑鼠左鍵時 需要2個參數')
+                print('事件函式錯誤: 按下滑鼠時 需要2個參數')
                 sys.exit()
 
-        if hasattr(__main__, '放開滑鼠左鍵時'):
+        if hasattr(__main__, '拖曳滑鼠時'):
             # check number of parameters
-            sig = signature(__main__.放開滑鼠左鍵時)
+            sig = signature(__main__.拖曳滑鼠時)
+            if len(sig.parameters) == 4:
+                 # parameters: x, y, button, modifiers
+                self.user_mouse_drag_handler = __main__.拖曳滑鼠時
+                print( '登錄事件函式：拖曳滑鼠時' )
+            else:
+                print('事件函式錯誤: 拖曳滑鼠時 需要4個參數')
+                sys.exit()
+
+
+
+        if hasattr(__main__, '放開滑鼠時'):
+            # check number of parameters
+            sig = signature(__main__.放開滑鼠時)
             if len(sig.parameters) == 2:
                  # parameters: x, y, button, modifiers
-                self.user_mouse_release_handler = __main__.放開滑鼠左鍵時
-                print( '登錄處理函式：放開滑鼠左鍵時' )
+                self.user_mouse_release_handler = __main__.放開滑鼠時
+                print( '登錄事件函式：放開滑鼠時' )
             else:
-                print('處理函式錯誤: 放開滑鼠左鍵時 需要2個參數')
+                print('事件函式錯誤: 放開滑鼠時 需要2個參數')
                 sys.exit()
+
+        if hasattr(__main__, '點擊物體時'):
+            # check number of parameters
+            sig = signature(__main__.點擊物體時)
+            if len(sig.parameters) == 3:
+                 # parameters: x, y, button, modifiers
+                self.user_object_click_handler = __main__.點擊物體時
+                print( '登錄事件函式：點擊物體時' )
+            else:
+                print('事件函式錯誤: 點擊物體時 需要3個參數')
+                sys.exit()
+
+
 
         if hasattr(__main__, '按下鍵盤時'):
             # check number of parameters
@@ -320,9 +355,9 @@ class PhysicsEngine(arcade.Window, Repl):
             if len(sig.parameters) == 1:
                  # parameters: x, y, button, modifiers
                 self.user_key_press_handler = __main__.按下鍵盤時
-                print( '登錄處理函式：按下鍵盤時' )
+                print( '登錄事件函式：按下鍵盤時' )
             else:
-                print('處理函式錯誤: 按下鍵盤時 需要1個參數')
+                print('事件函式錯誤: 按下鍵盤時 需要1個參數')
                 sys.exit()
 
         if hasattr(__main__, '放開鍵盤時'):
@@ -331,9 +366,9 @@ class PhysicsEngine(arcade.Window, Repl):
             if len(sig.parameters) == 1:
                  # parameters: x, y, button, modifiers
                 self.user_key_release_handler = __main__.放開鍵盤時
-                print( '登錄處理函式：放開鍵盤時' )
+                print( '登錄事件函式：放開鍵盤時' )
             else:
-                print('處理函式錯誤: 放開鍵盤時 需要1個參數')
+                print('事件函式錯誤: 放開鍵盤時 需要1個參數')
                 sys.exit()
 
         if hasattr(__main__, '箭頭發射時'):
@@ -342,9 +377,9 @@ class PhysicsEngine(arcade.Window, Repl):
             if len(sig.parameters) == 2:
                  # parameters: x, y, button, modifiers
                 self.user_arrow_launch_handler = __main__.箭頭發射時
-                print( '登錄處理函式：箭頭發射時' )
+                print( '登錄事件函式：箭頭發射時' )
             else:
-                print('處理函式錯誤: 箭頭發射時 需要2個參數')
+                print('事件函式錯誤: 箭頭發射時 需要2個參數')
                 sys.exit()
 
     ### event
@@ -352,6 +387,8 @@ class PhysicsEngine(arcade.Window, Repl):
     def on_draw(self):
         arcade.start_render()
         
+        self.coor_assist.draw()
+
         for b in self.circle_list:
             b.draw()
             
@@ -368,7 +405,7 @@ class PhysicsEngine(arcade.Window, Repl):
         self.seg_add_assist.draw()
         self.seg_remove_assist.draw()
         self.arrow_assist.draw()
-        self.coor_assist.draw()
+        
         # draw status line
         #gx = int(self.space.gravity.x)
         #gy = int(self.space.gravity.y)
@@ -411,7 +448,7 @@ class PhysicsEngine(arcade.Window, Repl):
             #self.seg_add_assist.disable()
         elif symbol == arcade.key.TAB :
             self.coor_assist.enable()
-        elif not self.模擬暫停:
+        elif not self.模擬暫停 and self.user_key_press_handler :
             self.user_key_press_handler(symbol)
 
     def on_key_release(self, symbol, mod):
@@ -422,7 +459,7 @@ class PhysicsEngine(arcade.Window, Repl):
             self.seg_remove_assist.disable()
         elif symbol == arcade.key.TAB :
             self.coor_assist.disable()
-        elif not self.模擬暫停:
+        elif not self.模擬暫停 and self.user_key_release_handler:
             self.user_key_release_handler(symbol)
 
     def on_mouse_press(self, x, y, button, modifiers):
@@ -450,9 +487,22 @@ class PhysicsEngine(arcade.Window, Repl):
                 self.dot_mark.update_pos(x, y)   
 
         elif button == arcade.MOUSE_BUTTON_LEFT and not self.模擬暫停:
+            if self.user_mouse_press_handler:
             # call user define handlers
-            self.user_mouse_press_handler(x, y)
-        
+                self.user_mouse_press_handler(x, y)
+
+            if self.user_object_click_handler:
+                query = common.stage.space.point_query_nearest((x,y), 0, self.obj_filter)
+                if query:
+                    self.user_object_click_handler(x, y, query.shape.obj)
+
+
+    def on_mouse_drag(self, x, y, dx, dy, button, modifiers):
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            if not self.模擬暫停 and self.user_mouse_drag_handler:
+                self.user_mouse_drag_handler(x, y, dx, dy)
+
+
     def on_mouse_motion(self, x, y, dx, dy):
         
         # segment assist
@@ -476,7 +526,7 @@ class PhysicsEngine(arcade.Window, Repl):
                 self.user_arrow_launch_handler(vector, start_pos)
 
             # call user define handlers
-            if not self.模擬暫停:
+            if not self.模擬暫停 and self.user_mouse_release_handler:
                 self.user_mouse_release_handler(x, y)
          
                         
@@ -503,30 +553,35 @@ class PhysicsEngine(arcade.Window, Repl):
         return b
 
     def 移除(self, obj):
-        if isinstance(obj, Segment):
-            self.space.remove(obj.phy_shape)
-            self.segment_list.remove(obj)
-            del obj.shape_element
-            del obj.phy_shape
-            del obj.phy_body
-            del obj
-        else: 
-        # remove shape and body from space
-            self.space.remove(obj.phy_shape)
-            self.space.remove(obj.phy_body)
-            if isinstance(obj, Circle):
-                self.circle_list.remove(obj)
-                del obj.dynamic_shape_element
-                del obj.kinematic_shape_element
-            
-            if isinstance(obj, Box):
-                self.poly_list.remove(obj)
-                del obj.dynamic_shape_element
-                del obj.kinematic_shape_element
 
-            del obj.phy_shape
-            del obj.phy_body
-            del obj
+        try:
+
+            if isinstance(obj, Segment):
+                self.space.remove(obj.phy_shape)
+                self.segment_list.remove(obj)
+                del obj.shape_element
+                del obj.phy_shape
+                del obj.phy_body
+                del obj
+            else: 
+            # remove shape and body from space
+                self.space.remove(obj.phy_shape)
+                self.space.remove(obj.phy_body)
+                if isinstance(obj, Circle):
+                    self.circle_list.remove(obj)
+                    del obj.dynamic_shape_element
+                    del obj.kinematic_shape_element
+                
+                if isinstance(obj, Box):
+                    self.poly_list.remove(obj)
+                    del obj.dynamic_shape_element
+                    del obj.kinematic_shape_element
+
+                del obj.phy_shape
+                del obj.phy_body
+                del obj
+        except AttributeError:
+            print('移除物體不存在')        
 
     ### assist
     def 箭頭開始(self, *args, **kwargs):

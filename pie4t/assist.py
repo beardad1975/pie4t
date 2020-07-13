@@ -157,7 +157,7 @@ class SegmentRemoveAssist:
 
     def update_hover(self,x, y):
         if self._enabled:
-            query = common.stage.space.point_query_nearest((x,y), 0, self.seg_filter)
+            query = common.stage.space.point_query_nearest((x,y), 3, self.seg_filter)
             if query:
                 self.hover_segment = query.shape.obj
             else:
