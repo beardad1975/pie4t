@@ -1,13 +1,13 @@
 import arcade
 ### default
 
-WIDTH = 600
-HEIGHT = 600
+WIDTH = 500
+HEIGHT = 800
 
 MIN_WIDTH = 200
 MIN_HEIGHT = 200
 
-TITLE = '遊戲物理引擎'
+TITLE = '物理碰撞模擬'
 
 DT_UPDATE = 1/50
 DT_SPLIT_NUM = 4

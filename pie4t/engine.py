@@ -1,5 +1,5 @@
 from inspect import signature
-import sys, time, json
+import sys, time, json, os
 
 import arcade
 import pymunk
@@ -47,6 +47,8 @@ class PhysicsEngine(arcade.Window, Repl):
         self.segment_list = []
         self.is_engine_running = False
 
+        
+
         # status line
         self.font =  ('C:/Windows/Fonts/msjh.ttc','arial')
 
@@ -61,6 +63,8 @@ class PhysicsEngine(arcade.Window, Repl):
         self.space.gravity = common.GRAVITY
         self.sleep_time_threshold = 1
         
+
+
         # info 
         # self.info = {}
         # self.info['gravity_x'] = 0
@@ -103,6 +107,11 @@ class PhysicsEngine(arcade.Window, Repl):
         self.user_arrow_launch_handler = lambda vector,start_pos :  None
 
         print(f"建立物理舞台(寬{self.win_width}x高{self.win_height})")
+
+        if not self.load_terrain():
+            #default terrain
+            self.新增線段((50, 50),(self.win_width-50, 50),6)
+            print('使用預設地形')
 
     # def info_update(self, dt=0):
     #     self.info['gravity_x'] = int(self.space.gravity.x)
@@ -223,6 +232,8 @@ class PhysicsEngine(arcade.Window, Repl):
         self.collect_user_event_handlers()
         self.start_repl()
 
+        
+
         # try cursor
         #cur = self.get_system_mouse_cursor('crosshair')
         #cur = self.get_system_mouse_cursor('help')
@@ -231,6 +242,11 @@ class PhysicsEngine(arcade.Window, Repl):
         self.set_mouse_cursor(None)
 
         self.is_engine_running = True
+
+        #load terrain file (right after is_engine_running flag)
+
+
+
         arcade.run()    
 
 
@@ -252,12 +268,15 @@ class PhysicsEngine(arcade.Window, Repl):
             with open(self.terrain_filename, 'r', encoding='utf-8') as f:
                 terrain_list = json.load(f)
         except FileNotFoundError:
-            print('找不到地形檔')
+            #print('找不到地形檔')
+            return False
+            
         else:
             self.segment_list = []
             for item in terrain_list:
                 self.新增線段(item[0], item[1], item[2])
             print('地形載入完成')
+            return True
 
     載入地形 = load_terrain
 

@@ -49,7 +49,6 @@ class Segment:
             self.is_lazy_setup = True
 
     def draw(self):
-        
         self.line_shape.draw()
         
     

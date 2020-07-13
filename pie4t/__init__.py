@@ -6,7 +6,7 @@ from .engine import PhysicsEngine
 
 __all__ = [ 
             'add_circle', '新增圓球', '物理引擎',
-            'simulate', 'mainloop', '模擬主迴圈', '移除',
+            'simulate', '開始模擬', '移除',
             'add_segment','新增線段','add_box','新增方塊',
 
 
@@ -48,15 +48,16 @@ def 移除(obj):
 
 
 
-def mainloop():
+def simulate():
     if not common.is_engine_created:
         PhysicsEngine()
 
     common.stage.simulate()
 
-simulate = mainloop
-模擬主迴圈 = mainloop
-#開始模擬 = simulate
+
+模擬主迴圈 = simulate
+
+開始模擬 = simulate
 
 #def module_init():
     # module reference
