@@ -13,7 +13,8 @@ from .repl import Repl
 from .circle import Circle
 from .box import Box
 from .segment import Segment
-from .assist import DotMark, SegmentAddAssist, ArrowAssist, SegmentRemoveAssist
+from .assist import (DotMark, SegmentAddAssist, ArrowAssist,
+                        SegmentRemoveAssist, CoordinateAssist,  )
 
 import __main__
 
@@ -79,6 +80,7 @@ class PhysicsEngine(arcade.Window, Repl):
         self.seg_add_assist = SegmentAddAssist()
         self.seg_remove_assist = SegmentRemoveAssist()
         self.arrow_assist = ArrowAssist()
+        self.coor_assist = CoordinateAssist()
 
         hole_handler = self.space.add_collision_handler(COLLITYPE_DEFAULT,
                 COLLITYPE_HOLE)
@@ -160,6 +162,7 @@ class PhysicsEngine(arcade.Window, Repl):
 
         # assist 
         self.dot_mark.lazy_setup()
+        self.coor_assist.lazy_setup()
         
 
 
@@ -346,6 +349,7 @@ class PhysicsEngine(arcade.Window, Repl):
         self.seg_add_assist.draw()
         self.seg_remove_assist.draw()
         self.arrow_assist.draw()
+        self.coor_assist.draw()
         # draw status line
         #gx = int(self.space.gravity.x)
         #gy = int(self.space.gravity.y)
@@ -386,6 +390,8 @@ class PhysicsEngine(arcade.Window, Repl):
         elif symbol in (arcade.key.LALT, arcade.key.RALT):
             self.seg_remove_assist.enable()
             #self.seg_add_assist.disable()
+        elif symbol == arcade.key.TAB :
+            self.coor_assist.enable()
         elif not self.模擬暫停:
             self.user_key_press_handler(symbol)
 
@@ -395,6 +401,8 @@ class PhysicsEngine(arcade.Window, Repl):
             self.seg_add_assist.disable()
         elif symbol in (arcade.key.LALT, arcade.key.RALT):
             self.seg_remove_assist.disable()
+        elif symbol == arcade.key.TAB :
+            self.coor_assist.disable()
         elif not self.模擬暫停:
             self.user_key_release_handler(symbol)
 

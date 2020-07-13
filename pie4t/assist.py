@@ -261,6 +261,70 @@ class ArrowAssist:
 
 
 
+class CoordinateAssist:
+    def __init__(self):
+        self._enabled = False
+        self.shape_element = None
+        self.coor_start = 0
+        self.win_width = common.stage.win_width
+        self.win_height = common.stage.win_height
+
+        upper_bound = max(self.win_width, self.win_height)
+        upper_bound = (upper_bound + 99) // 100 * 100 
+
+        self.coor_end = upper_bound
+        self.coor_step = 50
+        self.label_step = 100
+
+    def enable(self):
+        self._enabled = True
+        
+
+    def disable(self):
+        self._enabled = False
+        
+
+    @property
+    def enabled(self):
+        return self._enabled
+
+    def lazy_setup(self):
+        self.shape_element = arcade.ShapeElementList()
+        i = 0
+        for y in range(self.coor_start, self.coor_end + self.coor_step, self.coor_step):
+            l = arcade.create_line(0, y, self.win_width ,y , arcade.color.ANTIQUE_BRONZE  , 1)
+            self.shape_element.append(l)
+
+            r = arcade.create_rectangle(0, y, 8, 3, arcade.color.WHITE_SMOKE)
+            self.shape_element.append(r)
+            
+
+        # Draw the x labels.
+        i = 0
+        for x in range(self.coor_start, self.coor_end + self.coor_step, self.coor_step):
+            l = arcade.create_line(x, 0, x ,self.win_height , arcade.color.ANTIQUE_BRONZE  , 1)
+            self.shape_element.append(l)
+
+            r = arcade.create_rectangle(x, 0, 3, 8, arcade.color.WHITE_SMOKE)
+            self.shape_element.append(r)
+
+
+    def draw(self):
+        if self._enabled:
+            self.shape_element.center_x = 0
+            self.shape_element.center_y = 0
+            self.shape_element.angle = 0
+            self.shape_element.draw()
+            i = 0
+            for y in range(self.coor_start, self.coor_end + self.label_step, self.label_step):            
+                arcade.draw_text(f"{y}", 5, y+3, arcade.color.WHITE_SMOKE, 12, anchor_x="left", anchor_y="center")
+                i += 1
+
+            i = 1
+            for x in range(self.coor_start + self.label_step, self.coor_end + self.label_step, self.label_step):    
+                arcade.draw_text( f"{x}" , x, 5, arcade.color.WHITE_SMOKE, 12, anchor_x="center", anchor_y="bottom")
+                i += 1 
+
   
 
             
