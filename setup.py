@@ -5,7 +5,7 @@ with open("README.md", "r",encoding="utf8") as fh:
 
 setuptools.setup(
     name="pie4t",
-    version="0.0.2",
+    version="0.0.3",
     author="Wen-Hung, Chang",
     author_email="beardad1975@nmes.tyc.edu.tw",
     description="Physics Impulse Engine wrapper for Teenagers",
@@ -14,7 +14,7 @@ setuptools.setup(
     url="https://github.com/beardad1975/pie4t",
     #packages=setuptools.find_packages(),
     packages=['pie4t'],
-    install_requires = ['pyglet==1.4.1', 'pymunk==5.5.0'],
+    install_requires = ['arcade==2.4a10', 'pymunk==5.6.0', 'pyperclip==1.8.0'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
