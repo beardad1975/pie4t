@@ -325,6 +325,9 @@ class CoordinateAssist:
                 arcade.draw_text( f"{x}" , x, 5, arcade.color.WHITE_SMOKE, 12, anchor_x="center", anchor_y="bottom")
                 i += 1 
 
+            arcade.draw_text("Y", 25, common.stage.win_height-25, arcade.color.WHITE_SMOKE, 18, anchor_x="center", anchor_y="center")
+            arcade.draw_text("X", common.stage.win_width-25, 25, arcade.color.WHITE_SMOKE, 18, anchor_x="center", anchor_y="center")
+
   
 
             
