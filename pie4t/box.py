@@ -10,31 +10,32 @@ from .common import SHAPE_COLORS
 from .physics_common import PhysicsCommon
 
 class Box(PhysicsCommon):
-    def __init__(self, 長=None, 寬=None):
+    def __init__(self, 寬=None, 高=None):
         # pymunk part
         #self.density = 1
         self.lazy_setup_done = False
+        self.type_ = '方塊'
 
         self.phy_body = pymunk.Body(body_type=pymunk.Body.DYNAMIC)
         self.phy_body.velocity_func = self.limit_velocity
         self.phy_body.position_func = self.limit_position
       
 
-        if 長 is not None :
-            self.box_length = max(長, 4)
-        else:
-            self.box_length = random.randrange(common.BOX_WIDTH_MIN,
-                                common.BOX_WIDTH_MAX)
-
         if 寬 is not None :
-            self.box_width = max(寬, 4)
+            self.box_width = round(max(寬, 4),0)
         else:
             self.box_width = random.randrange(common.BOX_WIDTH_MIN,
                                 common.BOX_WIDTH_MAX)
 
+        if 高 is not None :
+            self.box_height = round(max(高, 4),0)
+        else:
+            self.box_height = random.randrange(common.BOX_WIDTH_MIN,
+                                common.BOX_WIDTH_MAX)
+
 
         self.phy_shape = pymunk.Poly.create_box(self.phy_body, 
-                                (self.box_width, self.box_length), radius=0)
+                                (self.box_width, self.box_height), radius=0)
 
 
         win_width = common.stage.win_width
@@ -79,7 +80,7 @@ class Box(PhysicsCommon):
     def make_dynamic_shape(self):
             # dynamic  circle
             
-            s = arcade.create_rectangle_filled(0, 0, self.box_width, self.box_length,
+            s = arcade.create_rectangle_filled(0, 0, self.box_width, self.box_height,
                                         self.box_color)
             self.dynamic_shape_element.append(s)
 
@@ -92,12 +93,12 @@ class Box(PhysicsCommon):
 
             border_color = (r, g, b)
 
-            s = arcade.create_rectangle(0, 0, self.box_width, self.box_length,
-                                        border_color, 2, filled=False)
+            s = arcade.create_rectangle(0, 0, self.box_width, self.box_height,
+                                        border_color, 3, filled=False)
             self.dynamic_shape_element.append(s)
             
-            s = arcade.create_rectangle_filled(int(self.box_width*0.40), 0, 
-                    3, int(self.box_length*0.8),
+            s = arcade.create_rectangle_filled(int(self.box_width*0.35), 0, 
+                    3, int(self.box_height*0.8),
                                         border_color)
             self.dynamic_shape_element.append(s)
             
@@ -107,29 +108,44 @@ class Box(PhysicsCommon):
             # dynamic  circle
 
             
-            s = arcade.create_rectangle_filled(0, 0, self.box_width, self.box_length,
+            s = arcade.create_rectangle_filled(0, 0, self.box_width, self.box_height,
                                         arcade.color.GRAY)
             self.kinematic_shape_element.append(s)
 
-            s = arcade.create_rectangle(0, 0, self.box_width, self.box_length,
-                                        arcade.color.LAVENDER_GRAY, 2, filled=False)
+            s = arcade.create_rectangle(0, 0, self.box_width, self.box_height,
+                                        arcade.color.LAVENDER_GRAY, 3, filled=False)
             self.kinematic_shape_element.append(s)
             
-            s = arcade.create_rectangle_filled(int(self.box_width*0.40), 0, 
-                    3, int(self.box_length*0.8),
+            s = arcade.create_rectangle_filled(int(self.box_width*0.35), 0, 
+                    3, int(self.box_height*0.8),
                                         arcade.color.LAVENDER_GRAY)
             self.kinematic_shape_element.append(s)
 
             
     def __repr__(self):
-        l = round(self.box_length, 1)
-        w = round(self.box_width, 1)
-        d = round(self.phy_shape.density, 1)
-        m = round(self.phy_shape.mass, 1)
+        # l = round(self.box_length, 1)
+        # w = round(self.box_width, 1)
+        # d = round(self.phy_shape.density, 1)
+        # m = round(self.phy_shape.mass, 1)
+        # f = self.phy_shape.friction
+        # e = self.phy_shape.elasticity
+
+        # return f'方塊 <長{l},寬{w},密度{d},質量{m},摩擦{f},彈性{e}>'
+
+        t = self.type_
+        w = self.box_width
+        h = self.box_height
+        a = self.phy_shape.area
+        d = self.phy_shape.density
+        m = self.phy_shape.mass
         f = self.phy_shape.friction
         e = self.phy_shape.elasticity
+        x = self.phy_body.position.x
+        y = self.phy_body.position.y
 
-        return f'方塊 <長{l},寬{w},密度{d},質量{m},摩擦{f},彈性{e}>'
+        return f'[{t}]寬{w:.0f}, 高{h:.0f}, 面積{a:.0f}, 密度{d:.2f}, 質量{m:.1f},\n' \
+               f'     摩擦{f:.1f}, 彈性{e:.1f}, x座標{x:.0f}, y座標{y:.0f}\n'
+
 
 
     def draw(self):

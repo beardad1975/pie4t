@@ -30,24 +30,24 @@ class PhysicsCommon:
         #print(body.position)
         x = body.position.x
         y = body.position.y
-        if y < common.POSITION_Y_MIN :
+        if y < common.stage.win_height * common.RECYCLE_Y_MIN_MUL :
             #print('exceed y min')
             #body.position = Vec2d(x, common.POSITION_Y_MAX)
             common.stage.移除(self)
-            #print('remove: ', self)
-        elif y > common.POSITION_Y_MAX:
+            #print('remove yVV: ')
+        elif y > common.stage.win_height * common.RECYCLE_Y_MAX_MUL:
             #body.position = Vec2d(x, common.POSITION_Y_MIN )
             common.stage.移除(self)
-            #print('remove: ', self)
-        elif x < common.POSITION_X_MIN :
-            #print('exceed y min')
+            #print('remove y^^: ')
+        elif x < common.stage.win_width * common.RECYCLE_X_MIN_MUL :
+            
             #body.position = Vec2d(common.POSITION_X_MAX, y )
             common.stage.移除(self)
-            #print('remove: ', self)
-        elif x > common.POSITION_X_MAX:
+            #print('remove  <<x : ')
+        elif x > common.stage.win_width * common.RECYCLE_X_MAX_MUL:
             #body.position = Vec2d(common.POSITION_X_MIN, y ) 
             common.stage.移除(self)
-            #print('remove: ', self)       
+            #print('remove  x>> : ')       
 
             #print('exceed y max')
             #print(body.position)

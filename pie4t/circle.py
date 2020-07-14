@@ -15,6 +15,7 @@ class Circle(PhysicsCommon):
         # pymunk part
         #self.density = 1
         self.lazy_setup_done = False
+        self.type_ = '圓球'
 
         self.phy_body = pymunk.Body(body_type=pymunk.Body.DYNAMIC)
         self.phy_body.velocity_func = self.limit_velocity
@@ -22,7 +23,7 @@ class Circle(PhysicsCommon):
       
 
         if 半徑 is not None :
-            self.radius = max(半徑, 4)
+            self.radius = round(max(半徑, 4),0)
             
         else:
             self.radius = random.randrange(common.CIRCLE_RADIUS_MIN,
@@ -109,13 +110,18 @@ class Circle(PhysicsCommon):
             self.kinematic_shape_element.append(s)
 
     def __repr__(self):
-        r = round(self.phy_shape.radius, 1)
-        d = round(self.phy_shape.density, 1)
-        m = round(self.phy_shape.mass, 1)
+        t = self.type_
+        r = self.phy_shape.radius
+        a = self.phy_shape.area
+        d = self.phy_shape.density
+        m = self.phy_shape.mass
         f = self.phy_shape.friction
         e = self.phy_shape.elasticity
+        x = self.phy_body.position.x
+        y = self.phy_body.position.y
 
-        return f'圓球 <半徑{r},密度{d},質量{m},摩擦{f},彈性{e}>'
+        return f'[{t}]半徑{r:.0f}, 面積{a:.1f}, 密度{d:.2f}, 質量{m:.1f},\n' \
+               f'     摩擦{f:.1f}, 彈性{e:.1f}, x座標{x:.0f}, y座標{y:.0f}\n'
 
 
     def draw(self):

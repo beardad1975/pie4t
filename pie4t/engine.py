@@ -19,12 +19,27 @@ from .assist import (DotMark, SegmentAddAssist, ArrowAssist,
 import __main__
 
 class PhysicsEngine(arcade.Window, Repl):
+    __single = None
+    __first_time = True
+
+    def __new__(clz, *args, **kwargs):
+        # Singleton
+        if not PhysicsEngine.__single:
+            PhysicsEngine.__single = object.__new__(clz)
+        else:
+            print("物理舞台已存在")
+
+        return PhysicsEngine.__single
     
-    def __init__(self, 寬=common.WIDTH, 
-                       高=common.HEIGHT, 
-                       title=common.TITLE):
+    def __init__(self, *args, **kwargs):
         # check module level default physics engine
-        
+        if PhysicsEngine.__first_time:
+            self.do_init(*args, **kwargs)
+            PhysicsEngine.__first_time = False
+
+    def do_init(self, 寬=common.WIN_WIDTH, 
+                       高=common.WIN_HEIGHT, 
+                       title=common.TITLE):    
         common.stage = self
         common.舞台 = self        
         common.is_engine_created = True
@@ -35,11 +50,27 @@ class PhysicsEngine(arcade.Window, Repl):
         self.pause_simulate = False 
         self.slow_simulate = False
 
-        self.win_width = 寬 if 寬 > common.MIN_WIDTH else common.MIN_WIDTH
-        self.win_height = 高 if 高 > common.MIN_HEIGHT else common.MIN_HEIGHT
+        if common.WIN_MIN_WIDTH < 寬 < common.WIN_MAX_WIDTH:
+            self.win_width = round(寬,0)
+        elif 寬 < common.WIN_MIN_WIDTH :
+            self.win_width = common.WIN_MIN_WIDTH
+        elif 寬 > common.WIN_MAX_WIDTH :
+            self.win_width = common.WIN_MAX_WIDTH
+
+        if common.WIN_MIN_HEIGHT < 高 < common.WIN_MAX_HEIGHT:
+            self.win_height = round(高,0)
+        elif 高 < common.WIN_MIN_HEIGHT :
+            self.win_height = common.WIN_MIN_HEIGHT
+        elif 高 > common.WIN_MAX_HEIGHT :
+            self.win_height = common.WIN_MAX_HEIGHT
+
+        #self.win_width = round(寬,0) if 寬 > common.MIN_WIDTH else common.MIN_WIDTH
+        
+        
+        #self.win_height = round(高,0) if 高 > common.MIN_HEIGHT else common.MIN_HEIGHT
 
         #print('stage size: ', self.win_width, self.win_height)
-        __main__.中央座標 = (self.win_width, self.win_height//2)
+        #__main__.中央座標 = (self.win_width, self.win_height//2)
 
         self.title = title
         self.set_update_rate(common.DT_UPDATE)
@@ -116,6 +147,7 @@ class PhysicsEngine(arcade.Window, Repl):
         # self.user_arrow_launch_handler = lambda vector,start_pos :  None
 
         print(f"建立舞台(寬{self.win_width}x高{self.win_height})")
+        
 
         if not self.load_terrain():
             #default terrain
@@ -167,6 +199,8 @@ class PhysicsEngine(arcade.Window, Repl):
 
     def lazy_setup(self):
         super().__init__(self.win_width, self.win_height, self.title)
+        #print( self.get_size())
+        #print(f"舞台寬{self.win_width}x高{self.win_height}")
 
         #print('do engine lazy setup')
         for i in self.circle_list:
@@ -352,23 +386,23 @@ class PhysicsEngine(arcade.Window, Repl):
         if hasattr(__main__, '按下鍵盤時'):
             # check number of parameters
             sig = signature(__main__.按下鍵盤時)
-            if len(sig.parameters) == 1:
+            if len(sig.parameters) == 3:
                  # parameters: x, y, button, modifiers
                 self.user_key_press_handler = __main__.按下鍵盤時
                 print( '登錄事件函式：按下鍵盤時' )
             else:
-                print('事件函式錯誤: 按下鍵盤時 需要1個參數')
+                print('事件函式錯誤: 按下鍵盤時 需要3個參數')
                 sys.exit()
 
         if hasattr(__main__, '放開鍵盤時'):
             # check number of parameters
             sig = signature(__main__.放開鍵盤時)
-            if len(sig.parameters) == 1:
+            if len(sig.parameters) == 3:
                  # parameters: x, y, button, modifiers
                 self.user_key_release_handler = __main__.放開鍵盤時
                 print( '登錄事件函式：放開鍵盤時' )
             else:
-                print('事件函式錯誤: 放開鍵盤時 需要1個參數')
+                print('事件函式錯誤: 放開鍵盤時 需要3個參數')
                 sys.exit()
 
         if hasattr(__main__, '箭頭發射時'):
@@ -405,16 +439,16 @@ class PhysicsEngine(arcade.Window, Repl):
         self.seg_add_assist.draw()
         self.seg_remove_assist.draw()
         self.arrow_assist.draw()
-        
+        self.coor_assist.draw()
         # draw status line
         #gx = int(self.space.gravity.x)
         #gy = int(self.space.gravity.y)
 
         if self.seg_add_assist.enabled:
-            arcade.draw_text('新增地形(滑鼠右鍵)', 0, 0, 
+            arcade.draw_text('暫停--新增地形(滑鼠右鍵)', 0, 20, 
                             arcade.csscolor.WHITE, 14, font_name=self.font)
         elif self.seg_remove_assist.enabled:
-            arcade.draw_text('移除地形(滑鼠右鍵)', 0, 0, 
+            arcade.draw_text('暫停--移除地形(滑鼠右鍵)', 0, 20, 
                             arcade.csscolor.WHITE, 14, font_name=self.font)
     
     def on_update(self, dt):
@@ -448,8 +482,9 @@ class PhysicsEngine(arcade.Window, Repl):
             #self.seg_add_assist.disable()
         elif symbol == arcade.key.TAB :
             self.coor_assist.enable()
-        elif not self.模擬暫停 and self.user_key_press_handler :
-            self.user_key_press_handler(symbol)
+        #elif not self.模擬暫停 and self.user_key_press_handler :
+        elif self.user_key_press_handler :
+            self.user_key_press_handler(symbol, self.mouse_x, self.mouse_y)
 
     def on_key_release(self, symbol, mod):
         if symbol in (arcade.key.LCTRL, arcade.key.RCTRL):
@@ -459,8 +494,9 @@ class PhysicsEngine(arcade.Window, Repl):
             self.seg_remove_assist.disable()
         elif symbol == arcade.key.TAB :
             self.coor_assist.disable()
-        elif not self.模擬暫停 and self.user_key_release_handler:
-            self.user_key_release_handler(symbol)
+        #elif not self.模擬暫停 and self.user_key_release_handler:
+        elif  self.user_key_release_handler:
+            self.user_key_release_handler(symbol, self.mouse_x, self.mouse_y)
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_RIGHT:
@@ -486,20 +522,28 @@ class PhysicsEngine(arcade.Window, Repl):
                 print('複製座標 '+ cor_text)
                 self.dot_mark.update_pos(x, y)   
 
-        elif button == arcade.MOUSE_BUTTON_LEFT and not self.模擬暫停:
-            if self.user_mouse_press_handler:
+        #elif button == arcade.MOUSE_BUTTON_LEFT and not self.模擬暫停:
+        elif button == arcade.MOUSE_BUTTON_LEFT :
+            object_clicked = False
+            if self.user_object_click_handler:
+                # object click has high priority
+                query = common.stage.space.point_query_nearest((x,y), 0, self.obj_filter)
+                if query:
+                    self.user_object_click_handler(query.shape.obj, x, y)
+                    object_clicked = True
+            
+                        
+            if not object_clicked and self.user_mouse_press_handler:
             # call user define handlers
                 self.user_mouse_press_handler(x, y)
 
-            if self.user_object_click_handler:
-                query = common.stage.space.point_query_nearest((x,y), 0, self.obj_filter)
-                if query:
-                    self.user_object_click_handler(x, y, query.shape.obj)
+
 
 
     def on_mouse_drag(self, x, y, dx, dy, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
-            if not self.模擬暫停 and self.user_mouse_drag_handler:
+            #if not self.模擬暫停 and self.user_mouse_drag_handler:
+            if self.user_mouse_drag_handler:
                 self.user_mouse_drag_handler(x, y, dx, dy)
 
 
@@ -526,7 +570,8 @@ class PhysicsEngine(arcade.Window, Repl):
                 self.user_arrow_launch_handler(vector, start_pos)
 
             # call user define handlers
-            if not self.模擬暫停 and self.user_mouse_release_handler:
+            #if not self.模擬暫停 and self.user_mouse_release_handler:
+            if self.user_mouse_release_handler:
                 self.user_mouse_release_handler(x, y)
          
                         
