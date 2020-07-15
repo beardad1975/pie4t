@@ -44,7 +44,7 @@ SEG_THICKNESS = 6
 
 
 #assist
-ASSIST_MARK_PERIOD = 5
+ASSIST_MARK_PERIOD = 0.5
 
 
 #shape

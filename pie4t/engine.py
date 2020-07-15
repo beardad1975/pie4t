@@ -476,12 +476,14 @@ class PhysicsEngine(arcade.Window, Repl):
             self.close()
         elif symbol in (arcade.key.LCTRL, arcade.key.RCTRL):
             self.seg_add_assist.enable()
+            self.coor_assist.enable()
             #self.seg_remove_assist.disable()
         elif symbol in (arcade.key.LALT, arcade.key.RALT):
             self.seg_remove_assist.enable()
-            #self.seg_add_assist.disable()
-        elif symbol == arcade.key.TAB :
             self.coor_assist.enable()
+            #self.seg_add_assist.disable()
+        # elif symbol == arcade.key.TAB :
+        #     self.coor_assist.enable()
         #elif not self.模擬暫停 and self.user_key_press_handler :
         elif self.user_key_press_handler :
             self.user_key_press_handler(symbol, self.mouse_x, self.mouse_y)
@@ -490,10 +492,12 @@ class PhysicsEngine(arcade.Window, Repl):
         if symbol in (arcade.key.LCTRL, arcade.key.RCTRL):
             #print('ctrl released')
             self.seg_add_assist.disable()
+            self.coor_assist.disable()
         elif symbol in (arcade.key.LALT, arcade.key.RALT):
             self.seg_remove_assist.disable()
-        elif symbol == arcade.key.TAB :
             self.coor_assist.disable()
+        # elif symbol == arcade.key.TAB :
+        #     self.coor_assist.disable()
         #elif not self.模擬暫停 and self.user_key_release_handler:
         elif  self.user_key_release_handler:
             self.user_key_release_handler(symbol, self.mouse_x, self.mouse_y)
