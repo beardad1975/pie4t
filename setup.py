@@ -19,7 +19,7 @@ setuptools.setup(
     install_requires = ['arcade==2.4a10', 'pymunk==5.6.0', 'pyperclip==1.8.0'],
         classifiers=[
             "Programming Language :: Python :: 3",
-            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "License :: OSI Approved :: MIT License",
             "Operating System :: Microsoft :: Windows",
             #"Operating System :: MacOS",
             #"Operating System :: POSIX :: Linux",
