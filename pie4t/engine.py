@@ -84,7 +84,12 @@ class PhysicsEngine(arcade.Window, Repl):
         # status line
         self.font =  ('C:/Windows/Fonts/msjh.ttc','arial')
 
-        self.terrain_filename = __main__.__file__ + '.地形'
+        if hasattr(__main__, '__file__'):
+            self.terrain_filename = __main__.__file__ + '.地形'
+        else:
+            # in shell , do not save terrain
+            self.terrain_filename = None
+
 
         # retain mouse postion while mouse motion event
         self.mouse_x = 0
@@ -149,7 +154,7 @@ class PhysicsEngine(arcade.Window, Repl):
         print(f"建立舞台(寬{self.win_width}x高{self.win_height})")
         
 
-        if not self.load_terrain():
+        if not self.terrain_filename or not self.load_terrain():
             #default terrain
             self.新增線段((50, 50),(self.win_width-50, 50),6)
             print('使用預設地形')
@@ -294,14 +299,16 @@ class PhysicsEngine(arcade.Window, Repl):
 
 
     def save_terrain(self):
-        terrain_list = []
-        for s in self.segment_list:
-            tmp = [s.a, s.b, s.thickness]
-            terrain_list.append(tmp)
+        if self.terrain_filename:
+            terrain_list = []
+            for s in self.segment_list:
+                tmp = [s.a, s.b, s.thickness]
+                terrain_list.append(tmp)
+                
             
-        
-        with open(self.terrain_filename, 'w', encoding='utf-8') as f:
-            json.dump(terrain_list, f)
+            with open(self.terrain_filename, 'w', encoding='utf-8') as f:
+                json.dump(terrain_list, f)
+                #print("已儲存地形檔")
             
         #print('save terrain')
 
@@ -578,7 +585,11 @@ class PhysicsEngine(arcade.Window, Repl):
             if self.user_mouse_release_handler:
                 self.user_mouse_release_handler(x, y)
          
-                        
+    # def on_close(self):
+    #     print('on_close')
+    #     self.close()
+    #     exit()
+
                 
 
     ### add object

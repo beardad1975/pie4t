@@ -6,6 +6,7 @@ import code
 
 import arcade
 import pie4t
+from . import common
 
 import __main__
 from __main__ import __dict__ as main_dict
@@ -20,6 +21,7 @@ class Repl:
         
         arcade.schedule(self.handle_repl, 0.2)
         t = threading.Thread(target=self.readline_thread)
+        common.repl_thread = t
         t.daemon = True
         t.start()  
 
@@ -33,7 +35,7 @@ class Repl:
                 self.cmd_queue.put(line)
                 time.sleep(0.2)
              except RuntimeError as e :
-                 print('請按上方執行或STOP按鈕')
+                 print('請按上方紅STOP按鈕重啟互動環境')
                  return
 
     def handle_repl(self, dt):

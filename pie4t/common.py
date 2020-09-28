@@ -1,8 +1,8 @@
 import arcade
 ### default win size
 
-WIN_WIDTH = 500
-WIN_HEIGHT = 800
+WIN_WIDTH = 400
+WIN_HEIGHT = 600
 
 ###
 
@@ -79,4 +79,4 @@ is_engine_created = False
 
 # stage is a physics engine
 stage = None
-物理舞台 = None
+舞台 = None
