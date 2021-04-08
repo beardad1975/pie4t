@@ -278,7 +278,7 @@ class PhysicsEngine(arcade.Window, Repl):
         #self.setup_pinball_layout()
         self.lazy_setup()
         self.collect_user_event_handlers()
-        self.start_repl()
+        #self.start_repl()
 
         
 
