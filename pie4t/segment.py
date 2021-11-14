@@ -32,6 +32,7 @@ class Segment:
 
         self.phy_shape.obj = self
 
+        common.stage.space.add(self.phy_body)
         common.stage.space.add(self.phy_shape)
         
         if common.stage.is_engine_running:

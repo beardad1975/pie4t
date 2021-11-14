@@ -145,6 +145,7 @@ class PhysicsEngine(arcade.Window, Repl):
         self.user_arrow_launch_handler = None
         self.user_mouse_drag_handler = None
         self.user_object_click_handler = None
+        self.user_update_handler = None
         # self.user_mouse_press_handler = lambda x, y :  None
         # self.user_mouse_release_handler = lambda x, y: None
         # self.user_key_press_handler = lambda key: None
@@ -221,7 +222,12 @@ class PhysicsEngine(arcade.Window, Repl):
         self.dot_mark.lazy_setup()
         self.coor_assist.lazy_setup()
         
+        # terrain text
+        self.add_terrain_text = arcade.Text('新增地形(滑鼠右鍵選定起點終點)', 50, 50, 
+                            arcade.csscolor.YELLOW, 14, font_name=self.font)
 
+        self.remove_terrain_text = arcade.Text('移除地形(滑鼠右鍵)', 50, 50, 
+                            arcade.csscolor.YELLOW, 14, font_name=self.font)
 
 
     # def setup_pinball_layout(self):
@@ -381,7 +387,7 @@ class PhysicsEngine(arcade.Window, Repl):
             # check number of parameters
             sig = signature(__main__.點擊物體時)
             if len(sig.parameters) == 3:
-                 # parameters: x, y, button, modifiers
+                 # parameters: object, x, y
                 self.user_object_click_handler = __main__.點擊物體時
                 print( '登錄事件函式：點擊物體時' )
             else:
@@ -423,6 +429,17 @@ class PhysicsEngine(arcade.Window, Repl):
                 print('事件函式錯誤: 箭頭發射時 需要2個參數')
                 sys.exit()
 
+        if hasattr(__main__, '當更新時'):
+            # check number of parameters
+            sig = signature(__main__.當更新時)
+            if len(sig.parameters) == 1:
+                 # parameters: dt
+                self.user_update_handler = __main__.當更新時
+                print( '登錄事件函式：當更新時' )
+            else:
+                print('事件函式錯誤: 當更新時 需要1個參數')
+                sys.exit()
+
     ### event
 
     def on_draw(self):
@@ -452,11 +469,13 @@ class PhysicsEngine(arcade.Window, Repl):
         #gy = int(self.space.gravity.y)
 
         if self.seg_add_assist.enabled:
-            arcade.draw_text('暫停--新增地形(滑鼠右鍵)', 0, 20, 
-                            arcade.csscolor.WHITE, 14, font_name=self.font)
+            self.add_terrain_text.draw()            
+            # arcade.draw_text('暫停--新增地形(滑鼠右鍵)', 50, 50, 
+            #                 arcade.csscolor.WHITE, 14, font_name=self.font)
         elif self.seg_remove_assist.enabled:
-            arcade.draw_text('暫停--移除地形(滑鼠右鍵)', 0, 20, 
-                            arcade.csscolor.WHITE, 14, font_name=self.font)
+            self.remove_terrain_text.draw()
+            # arcade.draw_text('暫停--移除地形(滑鼠右鍵)', 50, 50, 
+            #                 arcade.csscolor.WHITE, 14, font_name=self.font)
     
     def on_update(self, dt):
         # physics engine 
@@ -469,6 +488,8 @@ class PhysicsEngine(arcade.Window, Repl):
                 for i in range(common.DT_SPLIT_NUM // 4):
                     self.space.step(common.DT_SPLIT)
 
+            if self.user_update_handler:
+                self.user_update_handler(dt)
 
         # step_dt = 1/200.
         # x = 0
@@ -484,10 +505,12 @@ class PhysicsEngine(arcade.Window, Repl):
         elif symbol in (arcade.key.LCTRL, arcade.key.RCTRL):
             self.seg_add_assist.enable()
             self.coor_assist.enable()
+            
             #self.seg_remove_assist.disable()
         elif symbol in (arcade.key.LALT, arcade.key.RALT):
             self.seg_remove_assist.enable()
             self.coor_assist.enable()
+            
             #self.seg_add_assist.disable()
         # elif symbol == arcade.key.TAB :
         #     self.coor_assist.enable()

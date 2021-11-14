@@ -265,9 +265,11 @@ class CoordinateAssist:
     def __init__(self):
         self._enabled = False
         self.shape_element = None
+        self.text_list = []
         self.coor_start = 0
         self.win_width = common.stage.win_width
         self.win_height = common.stage.win_height
+        self.font =  ('C:/Windows/Fonts/msjh.ttc','arial')
 
         upper_bound = max(self.win_width, self.win_height)
         upper_bound = (upper_bound + 99) // 100 * 100 
@@ -308,6 +310,30 @@ class CoordinateAssist:
             r = arcade.create_rectangle(x, 0, 3, 8, arcade.color.WHITE_SMOKE)
             self.shape_element.append(r)
 
+        # ---------------------------
+
+        for y in range(self.coor_start, self.coor_end + self.label_step, self.label_step):            
+            t = arcade.Text(f"{y}", 5, y+3, arcade.color.WHITE_SMOKE, 12, anchor_x="left", 
+                            anchor_y="center", font_name=self.font)
+            self.text_list.append(t)
+            i += 1
+
+        i = 1
+        for x in range(self.coor_start + self.label_step, self.coor_end + self.label_step, self.label_step):    
+            t = arcade.Text( f"{x}" , x, 5, arcade.color.WHITE_SMOKE, 12, anchor_x="center", 
+                            anchor_y="bottom", font_name=self.font)
+            self.text_list.append(t)
+            i += 1 
+
+        t = arcade.Text("Y", 25, common.stage.win_height-25, arcade.color.WHITE_SMOKE, 18, 
+                        anchor_x="center", anchor_y="center", font_name=self.font)
+        self.text_list.append(t)
+
+        t = arcade.Text("X", common.stage.win_width-25, 25, arcade.color.WHITE_SMOKE, 18, 
+                        anchor_x="center", anchor_y="center", font_name=self.font)
+        self.text_list.append(t)
+
+
 
     def draw(self):
         if self._enabled:
@@ -315,18 +341,26 @@ class CoordinateAssist:
             self.shape_element.center_y = 0
             self.shape_element.angle = 0
             self.shape_element.draw()
-            i = 0
-            for y in range(self.coor_start, self.coor_end + self.label_step, self.label_step):            
-                arcade.draw_text(f"{y}", 5, y+3, arcade.color.WHITE_SMOKE, 12, anchor_x="left", anchor_y="center")
-                i += 1
 
-            i = 1
-            for x in range(self.coor_start + self.label_step, self.coor_end + self.label_step, self.label_step):    
-                arcade.draw_text( f"{x}" , x, 5, arcade.color.WHITE_SMOKE, 12, anchor_x="center", anchor_y="bottom")
-                i += 1 
+            for t in self.text_list:
+                t.draw()
 
-            arcade.draw_text("Y", 25, common.stage.win_height-25, arcade.color.WHITE_SMOKE, 18, anchor_x="center", anchor_y="center")
-            arcade.draw_text("X", common.stage.win_width-25, 25, arcade.color.WHITE_SMOKE, 18, anchor_x="center", anchor_y="center")
+            # i = 0
+            # for y in range(self.coor_start, self.coor_end + self.label_step, self.label_step):            
+            #     arcade.draw_text(f"{y}", 5, y+3, arcade.color.WHITE_SMOKE, 12, anchor_x="left", 
+            #                     anchor_y="center", font_name=self.font)
+            #     i += 1
+
+            # i = 1
+            # for x in range(self.coor_start + self.label_step, self.coor_end + self.label_step, self.label_step):    
+            #     arcade.draw_text( f"{x}" , x, 5, arcade.color.WHITE_SMOKE, 12, anchor_x="center", 
+            #                     anchor_y="bottom", font_name=self.font)
+            #     i += 1 
+
+            # arcade.draw_text("Y", 25, common.stage.win_height-25, arcade.color.WHITE_SMOKE, 18, 
+            #                 anchor_x="center", anchor_y="center", font_name=self.font)
+            # arcade.draw_text("X", common.stage.win_width-25, 25, arcade.color.WHITE_SMOKE, 18, 
+            #                 anchor_x="center", anchor_y="center", font_name=self.font)
 
   
 

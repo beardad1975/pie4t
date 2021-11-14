@@ -16,7 +16,7 @@ setuptools.setup(
     platforms=["Windows"],
     python_requires=">=3.5",
     packages=['pie4t','物理模組'],
-    install_requires = ['arcade==2.4.3', 'pymunk==5.7.0', 'pyperclip==1.8.0'],
+    install_requires = ['arcade~=2.6.0', 'pyperclip==1.8.0'],
         classifiers=[
             "Programming Language :: Python :: 3",
             "License :: OSI Approved :: MIT License",
