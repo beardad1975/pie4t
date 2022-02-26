@@ -275,7 +275,7 @@ class CoordinateAssist:
         upper_bound = (upper_bound + 99) // 100 * 100 
 
         self.coor_end = upper_bound
-        self.coor_step = 50
+        self.coor_step = 50 
         self.label_step = 100
 
     def enable(self):

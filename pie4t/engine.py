@@ -50,14 +50,14 @@ class PhysicsEngine(arcade.Window, Repl):
         self.pause_simulate = False 
         self.slow_simulate = False
 
-        if common.WIN_MIN_WIDTH < 寬 < common.WIN_MAX_WIDTH:
+        if common.WIN_MIN_WIDTH <= 寬 <= common.WIN_MAX_WIDTH:
             self.win_width = round(寬,0)
         elif 寬 < common.WIN_MIN_WIDTH :
             self.win_width = common.WIN_MIN_WIDTH
         elif 寬 > common.WIN_MAX_WIDTH :
             self.win_width = common.WIN_MAX_WIDTH
 
-        if common.WIN_MIN_HEIGHT < 高 < common.WIN_MAX_HEIGHT:
+        if common.WIN_MIN_HEIGHT <= 高 <= common.WIN_MAX_HEIGHT:
             self.win_height = round(高,0)
         elif 高 < common.WIN_MIN_HEIGHT :
             self.win_height = common.WIN_MIN_HEIGHT
@@ -223,10 +223,10 @@ class PhysicsEngine(arcade.Window, Repl):
         self.coor_assist.lazy_setup()
         
         # terrain text
-        self.add_terrain_text = arcade.Text('新增地形(滑鼠右鍵選定起點終點)', 50, 50, 
+        self.add_terrain_text = arcade.Text('新增地形(滑鼠右鍵選定起點終點)', 50, 70, 
                             arcade.csscolor.YELLOW, 14, font_name=self.font)
 
-        self.remove_terrain_text = arcade.Text('移除地形(滑鼠右鍵)', 50, 50, 
+        self.remove_terrain_text = arcade.Text('移除地形(滑鼠右鍵)', 50, 70, 
                             arcade.csscolor.YELLOW, 14, font_name=self.font)
 
 
