@@ -1,4 +1,4 @@
-README.md
+README.rst
 setup.py
 pie4t/__init__.py
 pie4t/__init__ori.py

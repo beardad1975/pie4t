@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: pie4t
-Version: 0.0.4
+Version: 0.0.9
 Summary: Physics Impulse Engine wrapper for Teenagers
 Home-page: https://github.com/beardad1975/pie4t
 Author: Wen-Hung, Chang 張文宏
@@ -9,7 +9,7 @@ License: UNKNOWN
 Description: Physics Impulse Engine wrapper for Teenagers
 Platform: Windows
 Classifier: Programming Language :: Python :: 3
-Classifier: License :: OSI Approved :: GNU General Public License v3 (GPLv3)
+Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: Microsoft :: Windows
 Classifier: Natural Language :: Chinese (Traditional)
 Requires-Python: >=3.5
